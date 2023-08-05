@@ -34,6 +34,11 @@ namespace Holo.XR.Android
 
         public void ShowToast(string msg)
         {
+            if (Application.platform != RuntimePlatform.Android)
+            {
+                Debug.Log(msg);
+                return;
+            }
             //Unity调用安卓的Toast
             currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() => {
                 toast.CallStatic<AndroidJavaObject>("makeText", currentActivity, msg, toast.GetStatic<int>("LENGTH_LONG")).Call("show");
