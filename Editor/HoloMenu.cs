@@ -12,7 +12,7 @@ namespace Holo.XR.Editor
     {
 
         #region MenuItem
-        [MenuItem("Holo/Build Bundle - B50R", false)]
+        [MenuItem("Holo-XR/Build Bundle - B50R", false)]
         static void BuildBundle()
         {
             string parentFolderPath = Application.streamingAssetsPath;
@@ -60,19 +60,22 @@ namespace Holo.XR.Editor
         #endregion
 
 
-        [MenuItem("Holo/Scene Config/Import MapLoader", false, 104)]
+        [MenuItem("Holo-XR/Scene Config/Import MapLoader", false, 104)]
         static void ImportMapLoader()
         {
-            XvPrefabsUtils.ImportMapLoader(null,null,false);
+            // 创建自定义弹窗并设置尺寸
+            Rect windowRect = new Rect(100, 100, 360, 136);
+            EditWindowXvCslamMapControl window = EditorWindow.GetWindowWithRect<EditWindowXvCslamMapControl>(windowRect, true, "数据导入");
+            window.Show();
         }
 
-        [MenuItem("Holo/Scene Config/Import MapScanner", false, 105)]
+        [MenuItem("Holo-XR/Scene Config/Import MapScanner", false, 105)]
         static void ImportMapScanner()
         {
             XvPrefabsUtils.ImportMapScanner(null,null);
         }
 
-        [MenuItem("Holo/Scene Config/Import Default Config", false,101)]
+        [MenuItem("Holo-XR/Scene Config/Import Default Config", false,101)]
         static void ImportDefaultConfig()
         {
             XvPrefabsUtils.ImportXvManager();

@@ -45,7 +45,7 @@ namespace Holo.XR.Editor.Utils
         /// 导入场景节点
         /// </summary>
         /// <param name="sceneName">跳转目标场景的名称</param>
-        public static void ImportJumpSceneController(string sceneName) {
+        public static void ImportJumpSceneController(string sceneName,bool isAuto) {
             GameObject gameObject = new GameObject("To New Scene");
             //查看当前所有节点
             GameObject[] gameObjects = GameObject.FindGameObjectsWithTag(MR_SystemTag);
@@ -54,7 +54,7 @@ namespace Holo.XR.Editor.Utils
             JumpSceneController jumpSceneController = gameObject.AddComponent<JumpSceneController>();
             jumpSceneController.dontDestoryGroup = gameObjects;
             jumpSceneController.nextSceneNodeTransform = gameObject.transform;
-            jumpSceneController.auto = true;
+            jumpSceneController.auto = isAuto;
             if (sceneName != null)
             {
                 jumpSceneController.sceneName = sceneName;

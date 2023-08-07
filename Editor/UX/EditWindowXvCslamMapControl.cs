@@ -3,41 +3,32 @@ using UnityEditor;
 using Holo.XR.Editor.Utils;
 using System.IO;
 
-public class CustomEditorWindow : EditorWindow
+public class EditWindowXvCslamMapControl : EditorWindow
 {
     private string selectedFilePath = "";
 
-    [MenuItem("MyTools/Open Custom Window")]
-    public static void ShowWindow()
-    {
-        // 创建自定义弹窗并设置尺寸
-        Rect windowRect = new Rect(100, 100, 500, 200);
-        CustomEditorWindow window = EditorWindow.GetWindowWithRect<CustomEditorWindow>(windowRect, true, "Custom Window");
-        window.Show();
-    }
-
     private void OnGUI()
     {
-        GUILayout.Label("选择CSLAM地图数据:", EditorStyles.boldLabel);
-
-        GUILayout.Label("仅支持“/Assets/StreamingAssets/”目录下的数据:", EditorStyles.boldLabel);
-
         GUILayout.Space(15f);
+
+        GUILayout.Label("选择CSlam地图数据（" + Holo.XR.Config.EditorConfig.GetMapPackageSuffix()+"文件)");
+
+        GUILayout.Space(5f);
+
         if (GUILayout.Button("选择数据", GUILayout.Width(100)))
         {
             // 打开本地文件选择对话框
             selectedFilePath = EditorUtility.OpenFilePanel("选择文件", "", Holo.XR.Config.EditorConfig.GetMapPackageSuffix()); // 可以指定文件类型，如 "*.txt"
         }
         GUILayout.Space(10f);
+        //设置标签宽度
+        EditorGUIUtility.labelWidth = 40f;
 
         // 显示文本输入框
         selectedFilePath = EditorGUILayout.TextField("路径:", selectedFilePath);
 
-        GUILayout.Label("Assets路径:" + Application.streamingAssetsPath, EditorStyles.boldLabel);
 
-        //设置标签宽度
-        EditorGUIUtility.labelWidth = 40f;
-
+        GUILayout.Space(10f);
 
         //注意：路径的“\”要替换为“/”
         if (GUILayout.Button("创建对象"))
@@ -80,6 +71,8 @@ public class CustomEditorWindow : EditorWindow
                     File.Delete(targetFileName);
                 }
                 File.Copy(selectedFilePath, targetFileName);
+                //刷新数据库，会自动更新meta文件
+                AssetDatabase.Refresh();
                 //转换为相对路径
                 string relativePath = targetFolderPath.Replace(Application.streamingAssetsPath, "");
                 XvPrefabsUtils.ImportMapLoader(relativePath, 
