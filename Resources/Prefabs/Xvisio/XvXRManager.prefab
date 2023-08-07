@@ -684,6 +684,7 @@ GameObject:
   m_Component:
   - component: {fileID: 266246757162906974}
   - component: {fileID: 266246757172878878}
+  - component: {fileID: 3989134668585172838}
   m_Layer: 0
   m_Name: Head
   m_TagString: Untagged
@@ -722,3 +723,21 @@ MonoBehaviour:
   trackPosition: 1
   updateEarly: 0
   positionOrigin: {x: 0, y: 0, z: 0}
+--- !u!143 &3989134668585172838
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 266246757163198910}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Height: 0
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
