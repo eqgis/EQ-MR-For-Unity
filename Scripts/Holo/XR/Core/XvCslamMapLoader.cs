@@ -9,6 +9,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Holo.XR.Core
 {
@@ -91,86 +92,159 @@ namespace Holo.XR.Core
 
             if (Application.platform != RuntimePlatform.Android)
                 return;
-            StartCoroutine(LoadMapAsync());
+
+            if (streamingAssets)
+            {
+                LoadMapByStreamingAssets();
+            }
+            else
+            {
+                LoadMapByLoacalFolder();
+            }
         }
 
-        private IEnumerator LoadMapAsync()
+        //=================内部===========================//
+       
+        /// <summary>
+        /// 从设备本地文件夹加载CSLAM数据包
+        /// </summary>
+        private void LoadMapByLoacalFolder()
         {
             //先读取缓存" ./cache/..."
             string cacheFolderPath = folderPath + HoloConfig.cacheFolder;
             string mapPath = cacheFolderPath + mapName + HoloConfig.cslamMapSuffix;
             string tagPose = cacheFolderPath + mapName + HoloConfig.tagPoseSuffix;
-
             if (!File.Exists(mapPath) || !File.Exists(tagPose))
             {
                 //地图文件不存在或者Tag姿态文件不存在
 
-                if (streamingAssets)
+                try
                 {
-                    //若是采用streamingAssets的模式，则数据存在streamingAssets文件下，若第二个参数为false，则不强制更新。持久化路径下会先查找文件
-                    //"持久化路径/mapName.homap"
-                    //从streamAssets中cp到持久化路径
-                    AndroidUtils.Toast("1");
-                    //string targetMapPachagePath = IoUtils.CopyMapToPersistentDataPath(folderPath + "/" + mapName + HoloConfig.mapPackageSuffix, false);
-
-                    string relativePath = folderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
-                    //格式校验
-                    relativePath.Replace("\\", "/");
-                    if (!relativePath.StartsWith("/"))
+                    //进行解压操作
+                    string mapPackagePath = folderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
+                    if (!File.Exists(mapPackagePath))
                     {
-                        relativePath = "/" + relativePath;
-                    }
-
-                    //示例数据路径:"/homap/test.homap"
-                    //如果持久化目录下没有文件，先从streamingAssets里复制一份到持久化目录
-                    string targetPersistentPath = Application.persistentDataPath + relativePath;
-                    if (!File.Exists(targetPersistentPath))
-                    {
-                        EqLog.d("IKKYU", Application.streamingAssetsPath + relativePath);
-
-                        WWW www = new WWW(Application.streamingAssetsPath + relativePath);
-                        yield return www;
-                        if (www.isDone)
+                        if (AndroidUtils.debug)
                         {
-                            File.WriteAllBytes(targetPersistentPath, www.bytes);
+                            AndroidUtils.GetInstance().ShowToast("Map文件不存在");
                         }
-                    }
-                    //改用持久化数据的文件夹路径
-                    folderPath = targetPersistentPath.Replace("/" + mapName + HoloConfig.mapPackageSuffix, "");
 
-                    AndroidUtils.Toast("3");
-                    //解压
-                    UnZipMapFilePackage(folderPath, mapName);
+                        EqLog.e("XvCslamMapLoader", "Do not find file. " + mapPackagePath);
+                    }
+                    else
+                    {
+                        //解压
+                        UnZipMapFilePackage(folderPath, mapName);
+                        ReadCslamMap(mapPath, tagPose);
+                    }
+                }
+                catch (Exception e)
+                {
+                    EqLog.e("XvCslamMapLoader", e.ToString());
+                }
+            }
+            else
+            {
+                ReadCslamMap(mapPath, tagPose);
+            }
+        }
+
+        /// <summary>
+        /// 从StreamingAssets加载对应CSLAM地图包
+        /// </summary>
+        private void LoadMapByStreamingAssets()
+        {
+            //文件夹相对路径格式校验
+            if (!folderPath.StartsWith("/"))
+            {
+                folderPath = "/" + folderPath;
+            }
+
+            //要拷贝至的目标文件夹路径
+            string destinationFolderPath = persistentDataPath + folderPath;
+
+            //先读取缓存" ./cache/..."
+            string cacheFolderPath = destinationFolderPath + HoloConfig.cacheFolder;
+            string mapPath = cacheFolderPath + mapName + HoloConfig.cslamMapSuffix;
+            string tagPose = cacheFolderPath + mapName + HoloConfig.tagPoseSuffix;
+            if (!File.Exists(mapPath) || !File.Exists(tagPose))
+            {
+                //streamingAssetsPath路径下的地图文件包路径
+                string sourceFilePath = streamingAssetsPath + folderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
+
+                //目标文件路径
+                string destinationFilePath = destinationFolderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
+
+                //判断目标文件是否存在，文件不存在，则执行拷贝操作
+                if (!File.Exists(destinationFilePath))
+                {
+                    if (!Directory.Exists(destinationFolderPath))
+                    {
+                        //创建目标文件夹
+                        Directory.CreateDirectory(destinationFolderPath);
+                    }
+
+                    StartCoroutine(CopyMapPackageFromStreamAssets(
+                        sourceFilePath,
+                        destinationFilePath,
+                        destinationFolderPath,
+                        mapPath,
+                        tagPose
+                        ));
                 }
                 else
                 {
-                    try
-                    {
-                        //进行解压操作
-                        string mapPackagePath = folderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
-                        if (!File.Exists(mapPackagePath))
-                        {
-                            if (AndroidUtils.debug)
-                            {
-                                AndroidUtils.GetInstance().ShowToast("Map文件不存在");
-                            }
-
-                            EqLog.e("XvCslamMapLoader", "Do not find file. " + mapPackagePath);
-                        }
-                        else
-                        {
-                            //解压
-                            UnZipMapFilePackage(folderPath, mapName);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        EqLog.e("XvCslamMapLoader", e.ToString());
-                    }
+                    //在目标文件夹解压指定名称的地图文件
+                    UnZipMapFilePackage(destinationFolderPath, mapName);
+                    ReadCslamMap(mapPath, tagPose);
                 }
             }
+            else
+            {
+                ReadCslamMap(mapPath, tagPose);
+            }
+        }
 
+        /// <summary>
+        /// 从StreamAssets中将地图包拷贝
+        /// </summary>
+        private IEnumerator CopyMapPackageFromStreamAssets(string sourceFilePath, string destinationFilePath,
+            string destinationFolderPath, string mapPath, string tagPose)
+        {
+            using (UnityWebRequest www = UnityWebRequest.Get(sourceFilePath))
+            {
+                yield return www.SendWebRequest();
 
+                if (www.result == UnityWebRequest.Result.Success)
+                {
+                    byte[] data = www.downloadHandler.data;
+
+                    if (data != null && data.Length > 0)
+                    {
+                        File.WriteAllBytes(destinationFilePath, data);
+                        //在目标文件夹解压指定名称的地图文件
+                        UnZipMapFilePackage(destinationFolderPath, mapName);
+                        ReadCslamMap(mapPath, tagPose);
+                    }
+                    else
+                    {
+                        EqLog.e("XvCslamMapLoader", "Failed to read file data from StreamingAssets.");
+                    }
+                }
+                else
+                {
+                    EqLog.e("XvCslamMapLoader", "Failed to read file: " + www.error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 读取Cslam地图
+        /// </summary>
+        /// <param name="mapPath"></param>
+        /// <param name="tagPose"></param>
+        private void ReadCslamMap(string mapPath, string tagPose)
+        {
             try
             {
                 //使用XVisio API 读取cslam
@@ -189,21 +263,17 @@ namespace Holo.XR.Core
             {
                 EqLog.e("XvCslamMapLoader", e.ToString());
             }
-
-
-
         }
-        //=================内部===========================//
 
         /// <summary>
         /// 解压地图文件包
         /// </summary>
-        /// <param name="folderPath"></param>
+        /// <param name="folderPathDes"></param>
         /// <param name="fileName"></param>
-        private void UnZipMapFilePackage(string folderPath, string fileName)
+        private void UnZipMapFilePackage(string folderPathDes, string fileName)
         {
-            string filePath = folderPath + "/" + fileName + HoloConfig.mapPackageSuffix;
-            string cachePath = folderPath + HoloConfig.cacheFolder;
+            string filePath = folderPathDes + "/" + fileName + HoloConfig.mapPackageSuffix;
+            string cachePath = folderPathDes + HoloConfig.cacheFolder;
             //解压输出至缓存路径
             ZipHelper.Instance.UnzipFile(filePath, cachePath,psd,null);
         }
@@ -291,7 +361,6 @@ namespace Holo.XR.Core
                 }
                 //if (AndroidUtils.debug)
                 //{
-                //    AndroidUtils.Toast("NPR: Count:" + npr.count + "Position:"+ npr.NextSceneNodePosition.ToString());
                 //    EqLog.d("IKKYU", "NPR: Count:" + npr.count + "Position:" + npr.NextSceneNodePosition.ToString());
                 //}
             }
