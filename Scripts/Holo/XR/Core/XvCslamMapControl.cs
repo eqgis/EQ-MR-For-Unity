@@ -46,8 +46,6 @@ namespace Holo.XR.Core
 
         protected static string psd = "holotech";
 
-        protected string persistentDataPath = Application.persistentDataPath;
-        protected string streamingAssetsPath = Application.streamingAssetsPath;
         /// <summary>
         /// 获取地图质量
         /// </summary>

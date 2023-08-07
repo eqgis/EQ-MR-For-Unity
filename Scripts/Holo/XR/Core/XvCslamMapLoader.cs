@@ -28,6 +28,11 @@ namespace Holo.XR.Core
         //默认自动加载的延时时间，仅影响第一次场景加载
         private int delay = 5000;
 
+        //持久化路径
+        private string persistentDataPath;
+        //资源路径
+        private string streamingAssetsPath;
+
         private void Awake()
         {
             //默认文件夹路径
@@ -36,6 +41,9 @@ namespace Holo.XR.Core
                 //安卓持久化存储路径为:/Android/data/包路径/
                 folderPath = Application.persistentDataPath;
             }
+
+            persistentDataPath = Application.persistentDataPath;
+            streamingAssetsPath = Application.streamingAssetsPath;
         }
 
         public void Start()
@@ -55,14 +63,6 @@ namespace Holo.XR.Core
                     Invoke("LoadMap", 0.1f);
                 }
             }
-            GameObject headCamera = GameObject.Find("Head");
-            if (AndroidUtils.debug && Application.platform == RuntimePlatform.Android)
-            {
-                AndroidUtils.GetInstance().ShowToast("position:" + headCamera.transform.position.ToString());
-            }
-            headCamera.transform.rotation = Quaternion.Euler(0, 0, 0);
-            headCamera.transform.position = Vector3.zero;
-
 
             if (AndroidUtils.debug)
             {
