@@ -9,16 +9,14 @@ namespace Holo.XR.Android
 
         public List<GameObject> hiddenObjectsInAndroid;
 
-
         private void Awake()
         {
             Application.targetFrameRate = 30;
             androidUtils = AndroidUtils.GetInstance();
 
-            if (AndroidUtils.debug)
-            {
-                EqLog.d("HoloBase", "---Awake---");
-            }
+#if DEBUG_MODEL
+            EqLog.d("HoloBase", "---Awake---");
+#endif
 
             if (Application.platform == RuntimePlatform.Android)
             {
@@ -32,21 +30,18 @@ namespace Holo.XR.Android
 
         private void Start()
         {
-            if (AndroidUtils.debug)
-            {
-
-                EqLog.d("HoloBase", "---Start---");
-                string sceneName = this.gameObject.scene.name;
-                androidUtils.ShowToast("当前场景：" + sceneName);
-            }
+#if DEBUG_MODEL
+            EqLog.d("HoloBase", "---Start---");
+            string sceneName = this.gameObject.scene.name;
+            androidUtils.ShowToast("当前场景：" + sceneName);
+#endif
         }
 
         private void OnDestroy()
         {
-            if (AndroidUtils.debug)
-            {
-                EqLog.d("HoloBase", "---OnDestroy---");
-            }
+#if DEBUG_MODEL
+                EqLog.d("HoloBase", "---OnDestroy---"); 
+#endif
             androidUtils.Destroy();
         }
     }

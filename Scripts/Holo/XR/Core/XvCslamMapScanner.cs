@@ -3,7 +3,11 @@ using AOT;
 using Holo.XR.Android;
 using Holo.XR.Config;
 using Holo.XR.Utils;
+
+#if ENGINE_XVISIO
 using LitJson;
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,10 +46,9 @@ namespace Holo.XR.Core
         {
             StartMap();
 
-            if (AndroidUtils.debug)
-            {
+#if DEBUG_MODEL
                 InvokeRepeating("OutputMapInfo", 3.0f, 1.0f);
-            }
+#endif
         }
 
         private void OnDestroy()
@@ -73,18 +76,21 @@ namespace Holo.XR.Core
             {
                 //保存地图
                 mapFilePath = folderPath + HoloConfig.cacheFolder + mapName + HoloConfig.cslamMapSuffix;
+
+#if ENGINE_XVISIO
                 API.xslam_save_map_and_switch_to_cslam(mapFilePath, OnCslamSaved, OnSaveLocalized);
+#endif
                 //保存位置关系
                 poseFilePath = folderPath + HoloConfig.cacheFolder + mapName + HoloConfig.tagPoseSuffix;
                 SaveSceneNodeChildren(poseFilePath);
                 mapPackagePath = folderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
 
-                if (AndroidUtils.debug)
-                {
+
+#if DEBUG_MODEL
                     EqLog.d("XvCslamMapSaver", "save Complete");
 
                     AndroidUtils.GetInstance().ShowToast("保存成功！\n" + mapPackagePath);
-                }
+#endif
                 complete?.Invoke();
             }catch(Exception e)
             {
@@ -98,6 +104,7 @@ namespace Holo.XR.Core
         /// </summary>
         private void SaveSceneNodeChildren(string jsonFilePath)
         {
+#if ENGINE_XVISIO
             string msg = "";
             List<NodePose> mapContentList = new List<NodePose>();
             for (int i = 0; i < content.transform.childCount; i++)
@@ -125,6 +132,7 @@ namespace Holo.XR.Core
             //写入内容
             //File.WriteAllText(jsonFilePath, msg);
             File.WriteAllBytes(jsonFilePath, Encoding.UTF8.GetBytes(msg));
+#endif
         }
 
         /// <summary>
@@ -132,7 +140,9 @@ namespace Holo.XR.Core
         /// </summary>
         /// <param name="status_of_saved_map"></param>
         /// <param name="map_quality"></param>
+#if ENGINE_XVISIO
         [MonoPInvokeCallback(typeof(API.detectCslamSaved_callback))]
+#endif
         static void OnCslamSaved(int status_of_saved_map, int map_quality)
         {//不是静态方法会出错
             mapQuality = map_quality;
@@ -154,10 +164,13 @@ namespace Holo.XR.Core
         /// 保存地图匹配度的回调实现
         /// </summary>
         /// <param name="percentc"></param>
+#if ENGINE_XVISIO
         [MonoPInvokeCallback(typeof(API.detectLocalized_callback))]
+#endif
         static void OnSaveLocalized(float percent)
         {//不是静态方法会出错
             mapMatchingPercent = percent;
         }
     }
+
 }

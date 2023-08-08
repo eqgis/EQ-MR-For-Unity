@@ -34,7 +34,6 @@ namespace Holo.XR.Editor.UX
                 EditorUtility.ClearProgressBar();
                 EditorApplication.update = null;
             }
-
         }
     }
 }

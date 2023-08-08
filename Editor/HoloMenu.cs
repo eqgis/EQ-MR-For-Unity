@@ -3,14 +3,12 @@ using Holo.XR.Editor.Utils;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Windows;
 
 namespace Holo.XR.Editor
 {
     public class HoloMenu :EditorUtility
     {
-
         #region MenuItem
         [MenuItem("Holo-XR/Build Bundle - B50R", false)]
         static void BuildBundle()
@@ -45,12 +43,12 @@ namespace Holo.XR.Editor
         BuildAssetBundleOptions.ChunkBasedCompression ,
         BuildTarget.StandaloneWindows);
 #endif
-            //导出场景信息,注意：所挂载的C#脚本无法导出
-            Scene activeScene = SceneManager.GetActiveScene();
-            SceneInfoSaver.ExportSceneJson(activeScene, folderPath);
+            ////导出场景信息,注意：所挂载的C#脚本无法导出
+            //Scene activeScene = SceneManager.GetActiveScene();
+            //SceneInfoSaver.ExportSceneJson(activeScene, folderPath);
 
-            ZipWrapper.Zip(new string[] { folderPath }, folderPath + ".zip", null, null);
-            EditorUtility.DisplayDialog("提示", "打包成功!\n场景名称:"+activeScene.name+"\n文件路径:\n" + folderPath + ".zip", "ok");
+            //ZipWrapper.Zip(new string[] { folderPath }, folderPath + ".zip", null, null);
+            //EditorUtility.DisplayDialog("提示", "打包成功!\n场景名称:"+activeScene.name+"\n文件路径:\n" + folderPath + ".zip", "ok");
 
 #if UNITY_EDITOR_WIN
             string localPath = parentFolderPath.Replace('/', '\\');
@@ -83,7 +81,14 @@ namespace Holo.XR.Editor
             XvPrefabsUtils.ImportXvThrowScene();
         }
 
+        //在Unity菜单中创建一个菜单路径用于设置宏定义
+        [MenuItem("Holo-XR/Settings")]
+        public static void Setting()
+        {
+            Rect windowRect = new Rect(100, 100, 300, 136);
+            SettingsWindow win = EditorWindow.GetWindowWithRect<SettingsWindow>(windowRect, false, "全局设置");
+            //win.titleContent = new GUIContent("全局设置");
+            win.Show();
+        }
     }
-
-
 }

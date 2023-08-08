@@ -1,5 +1,3 @@
-
-
 using Holo.XR.Detect;
 using Holo.XR.Core;
 using UnityEngine;

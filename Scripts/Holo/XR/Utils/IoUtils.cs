@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.IO;
-using Holo.XR.Config;
 using Holo.XR.Android;
 
 namespace Holo.XR.Utils

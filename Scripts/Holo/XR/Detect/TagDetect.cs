@@ -1,11 +1,13 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+
+#if ENGINE_XVISIO
 using XvSdk;
+#endif
 
 namespace Holo.XR.Detect
 {
-
     public class TagDetect : MonoBehaviour
     {
         public string tagGroupName = "36h11";
@@ -16,7 +18,9 @@ namespace Holo.XR.Detect
         public static bool isFound = false;
         public GameObject rootNode;
 
+#if ENGINE_XVISIO
         private TagDetection[] tagDetection;
+#endif
         private bool ifCheck = false;
 
         public Text idText;
@@ -85,8 +89,9 @@ namespace Holo.XR.Detect
         /// <summary>
         /// 检测
         /// </summary>
-        void Detect()
+        private void Detect()
         {
+#if ENGINE_XVISIO
             tagDetection = AprilTag.StartDetector(tagGroupName, size);//鱼眼 模式
                                                                       //tagDetection = AprilTag.StartRgbDetector("36h11", 0.024);//rgb 模式-
 
@@ -136,6 +141,7 @@ namespace Holo.XR.Detect
 
             }
 
+#endif
         }
 
         public void ResetCurrentConfidence()

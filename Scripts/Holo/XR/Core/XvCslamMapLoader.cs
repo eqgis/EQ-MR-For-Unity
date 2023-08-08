@@ -3,7 +3,11 @@ using AOT;
 using Holo.XR.Android;
 using Holo.XR.Config;
 using Holo.XR.Utils;
+
+#if ENGINE_XVISIO
 using LitJson;
+#endif
+
 using System;
 using System.Collections;
 using System.IO;
@@ -64,10 +68,10 @@ namespace Holo.XR.Core
                 }
             }
 
-            if (AndroidUtils.debug)
-            {
-                InvokeRepeating("OutputMapInfo", 3.0f, 1.0f);
-            }
+
+#if DEBUG_MODEL
+            InvokeRepeating("OutputMapInfo", 3.0f, 1.0f);
+#endif
         }
 
 
@@ -117,17 +121,16 @@ namespace Holo.XR.Core
             if (!File.Exists(mapPath) || !File.Exists(tagPose))
             {
                 //地图文件不存在或者Tag姿态文件不存在
-
                 try
                 {
                     //进行解压操作
                     string mapPackagePath = folderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
                     if (!File.Exists(mapPackagePath))
                     {
-                        if (AndroidUtils.debug)
-                        {
+
+#if DEBUG_MODEL
                             AndroidUtils.GetInstance().ShowToast("Map文件不存在");
-                        }
+#endif
 
                         EqLog.e("XvCslamMapLoader", "Do not find file. " + mapPackagePath);
                     }
@@ -247,16 +250,18 @@ namespace Holo.XR.Core
         {
             try
             {
+#if ENGINE_XVISIO
                 //使用XVisio API 读取cslam
                 API.xslam_load_map_and_switch_to_cslam(mapPath, OnCslamSwitched, OnLoadLocalized);
+#endif
                 //读取位置关系
                 LoadSceneNodeChildren(tagPose);
 
-                if (AndroidUtils.debug)
-                {
-                    AndroidUtils.GetInstance().ShowToast("匹配成功！\n" + mapPath);
+
+#if DEBUG_MODEL
+                AndroidUtils.GetInstance().ShowToast("匹配成功！\n" + mapPath);
                     EqLog.d("XvCslamMapLoader", "loadingComplete");
-                }
+#endif
                 complete?.Invoke();
             }
             catch (Exception e)
@@ -288,10 +293,10 @@ namespace Holo.XR.Core
             //先判断是否存在，再创建
             if (!File.Exists(jsonFilePath))
             {
-                if (AndroidUtils.debug)
-                {
+
+#if DEBUG_MODEL
                     AndroidUtils.GetInstance().ShowToast("缺少Tag位置信息");
-                }
+#endif
                 data = "";
             }
             else
@@ -303,6 +308,8 @@ namespace Holo.XR.Core
             }
 
             EqLog.d("XvCslamMapLoader", data);
+
+#if ENGINE_XVISIO
             if (data != "")
             {
                 JsonData jd = JsonMapper.ToObject(data);
@@ -368,13 +375,16 @@ namespace Holo.XR.Core
             {
                 EqLog.e("XvCslamMapLoader", "data was null");
             }
+#endif
         }
 
         /// <summary>
         /// 加载地图的回调函数实现
         /// </summary>
         /// <param name="map_quality">地图质量</param>
+#if ENGINE_XVISIO
         [MonoPInvokeCallback(typeof(API.detectSwitched_callback))]
+#endif
         static void OnCslamSwitched(int map_quality)
         {//不是静态方法会出错
             mapQuality = map_quality;
@@ -384,10 +394,14 @@ namespace Holo.XR.Core
         /// 加载地图的匹配度的回调实现
         /// </summary>
         /// <param name="percent">匹配度</param>
+
+#if ENGINE_XVISIO
         [MonoPInvokeCallback(typeof(API.detectLocalized_callback))]
+#endif
         static void OnLoadLocalized(float percent)
         {//不是静态方法会出错
             mapMatchingPercent = percent;
         }
     }
+
 }

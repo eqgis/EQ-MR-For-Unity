@@ -2,14 +2,12 @@ using UnityEngine;
 
 namespace Holo.XR.Android
 {
-
     public class AndroidUtils
     {
         private AndroidJavaClass unityPlayer;
         private AndroidJavaObject currentActivity;
         private AndroidJavaClass toast;
         private static AndroidUtils instance = null;
-        public static bool debug = true;
 
         private AndroidUtils()
         {

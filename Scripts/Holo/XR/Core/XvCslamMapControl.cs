@@ -96,14 +96,15 @@ namespace Holo.XR.Core
                 //判断一下，防止Saver和Loader同时出现的情况，导致重复调用
                 if (!start)
                 {
+#if ENGINE_XVISIO
                     // 开启cslam地图共享模式接口
                     API.xslam_start_map();
+#endif
                     start = true;
                 }
-                if (AndroidUtils.debug)
-                {
+#if DEBUG_MODEL
                     AndroidUtils.GetInstance().ShowToast("xslam_start_map");
-                }
+#endif
             }
         }
 
@@ -118,13 +119,15 @@ namespace Holo.XR.Core
                 {
                     //先修改标记状态
                     start = false;
+#if ENGINE_XVISIO
                     // 关闭cslam地图共享模式接口
                     API.xslam_stop_map();
+#endif
                 }
-                if (AndroidUtils.debug)
-                {
+
+#if DEBUG_MODEL
                     AndroidUtils.GetInstance().ShowToast("xslam_stop_map");
-                }
+#endif
             }
         }
 
