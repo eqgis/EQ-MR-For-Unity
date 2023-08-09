@@ -24,7 +24,7 @@ public class SettingsWindow : EditorWindow
         m_List.Add(new MacorItem() { Name = "ENGINE_NREAL", DisplayName = "NReal", IsDebug = false, IsRelease = true });
         for (int i = 0; i < m_List.Count; i++)
         {
-            if (!string.IsNullOrEmpty(m_Macor) && m_Macor.IndexOf(m_List[i].Name) == -1)
+            if ("".Equals(m_Macor) || m_Macor == null || m_Macor.IndexOf(m_List[i].Name) == -1)
             {
                 m_Dic[m_List[i].Name] = false;
             }
@@ -37,28 +37,30 @@ public class SettingsWindow : EditorWindow
 
     void OnGUI()
     {
-        EditorGUILayout.BeginHorizontal("box");
-        EditorGUIUtility.labelWidth = 40;
-        GUILayout.Label("快速设置:", EditorStyles.boldLabel);
-        if (GUILayout.Button("调试模式", GUILayout.Width(100)))
-        {
-            for (int i = 0; i < m_List.Count; i++)
-            {
-                m_Dic[m_List[i].Name] = m_List[i].IsDebug;
-            }
-            SaveMacor();
-        }
+        //EditorGUILayout.BeginHorizontal("box");
+        //EditorGUIUtility.labelWidth = 40;
+        //GUILayout.Label("快速设置:", EditorStyles.boldLabel);
+        //if (GUILayout.Button("调试模式", GUILayout.Width(100)))
+        //{
+        //    for (int i = 0; i < m_List.Count; i++)
+        //    {
+        //        m_Dic[m_List[i].Name] = m_List[i].IsDebug;
+        //    }
+        //    SaveMacor();
+        //}
 
-        if (GUILayout.Button("发布模式", GUILayout.Width(100)))
-        {
-            for (int i = 0; i < m_List.Count; i++)
-            {
-                m_Dic[m_List[i].Name] = m_List[i].IsRelease;
-            }
-            SaveMacor();
-        }
-        EditorGUILayout.EndHorizontal();
+        //if (GUILayout.Button("发布模式", GUILayout.Width(100)))
+        //{
+        //    for (int i = 0; i < m_List.Count; i++)
+        //    {
+        //        m_Dic[m_List[i].Name] = m_List[i].IsRelease;
+        //    }
+        //    SaveMacor();
+        //}
+        //EditorGUILayout.EndHorizontal();
 
+        GUILayout.Space(10f);
+        GUILayout.Label("开发设置:", EditorStyles.boldLabel);
         EditorGUILayout.BeginHorizontal("box");
         for (int i = 0; i < 2; i++)
         {
@@ -67,9 +69,9 @@ public class SettingsWindow : EditorWindow
         EditorGUILayout.EndHorizontal();
 
         GUILayout.Space(10f);
-        EditorGUILayout.BeginHorizontal("box");
 
         GUILayout.Label("平台选择:", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal("box");
         for (int i = 2; i < m_List.Count; i++)
         {
             m_Dic[m_List[i].Name] = GUILayout.Toggle(m_Dic[m_List[i].Name], m_List[i].DisplayName);
@@ -78,14 +80,15 @@ public class SettingsWindow : EditorWindow
 
         GUILayout.Space(10f);
 
-        EditorGUILayout.BeginHorizontal("box");
+        GUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace(); // 创建一个伸缩空间，将按钮推到水平中心
         if (GUILayout.Button("保存修改", GUILayout.Width(100)))
         {
             SaveMacor();
         }
 
-
-        EditorGUILayout.EndHorizontal();
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
     }
     private void SaveMacor()
     {
@@ -113,7 +116,7 @@ public class SettingsWindow : EditorWindow
         /// </summary>
         public string DisplayName;
         /// <summary>
-        /// 是否调试xiang
+        /// 是否调试项
         /// </summary>
         public bool IsDebug;
         ///是否发布项
