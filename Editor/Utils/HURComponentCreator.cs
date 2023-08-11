@@ -38,9 +38,7 @@ namespace Holo.XR.Editor.Utils
 
         internal static void ExportDllAndAssetsBundle()
         {
-
-            Rect windowRect = new Rect(100, 100, 240, 180);
-            SceneExportWindow win = EditorWindow.GetWindowWithRect<SceneExportWindow>(windowRect, false, "Export-Settings");
+            SceneExportWindow win = EditorWindow.GetWindow<SceneExportWindow>(false, "Export-Settings");
             win.Show();
         }
     }
