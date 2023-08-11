@@ -1,4 +1,5 @@
 using Holo.XR.Editor.Utils;
+using Holo.XR.Editor.UX;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ namespace Holo.XR.Editor
         {
             GameObject selectedObject = menuCommand.context as GameObject;
             // Implement the action for Option 1 here
-            XvPrefabsUtils.ImportXvManager();
+            XvPrefabsCreator.ImportXvManager();
         }
 
         [MenuItem("GameObject/Holo XR/Gesture", false, 12)]
@@ -20,7 +21,7 @@ namespace Holo.XR.Editor
         {
             GameObject selectedObject = menuCommand.context as GameObject;
             // Implement the action for Option 2 here
-            XvPrefabsUtils.ImportGesture();
+            XvPrefabsCreator.ImportGesture();
         }
 
         [MenuItem("GameObject/Holo XR/ThrowScreenObj", false, 13)]
@@ -28,7 +29,7 @@ namespace Holo.XR.Editor
         {
             GameObject selectedObject = menuCommand.context as GameObject;
             // Implement the action for Option 2 here
-            XvPrefabsUtils.ImportXvThrowScene();
+            XvPrefabsCreator.ImportXvThrowScene();
         }
 
         [MenuItem("GameObject/Holo XR/JumpSceneController", false, 13)]

@@ -307,7 +307,9 @@ namespace Holo.XR.Core
                 data = Encoding.UTF8.GetString(bytes);
             }
 
+#if DEBUG_MODEL
             EqLog.d("XvCslamMapLoader", data);
+#endif
 
 #if ENGINE_XVISIO
             if (data != "")

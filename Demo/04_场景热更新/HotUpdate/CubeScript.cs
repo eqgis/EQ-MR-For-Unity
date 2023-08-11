@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 热更测试脚本
+/// </summary>
 public class CubeScript : MonoBehaviour
 {
     public float rotationSpeed = 50.0f; // 旋转速度

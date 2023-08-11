@@ -1,5 +1,6 @@
 
 using Holo.XR.Editor.Utils;
+using Holo.XR.Editor.UX;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -58,6 +59,7 @@ namespace Holo.XR.Editor
         #endregion
 
 
+        #region Scene Config
         [MenuItem("Holo-XR/Scene Config/Import MapLoader", false, 104)]
         static void ImportMapLoader()
         {
@@ -70,25 +72,46 @@ namespace Holo.XR.Editor
         [MenuItem("Holo-XR/Scene Config/Import MapScanner", false, 105)]
         static void ImportMapScanner()
         {
-            XvPrefabsUtils.ImportMapScanner(null,null);
+            XvPrefabsCreator.ImportMapScanner(null,null);
         }
 
         [MenuItem("Holo-XR/Scene Config/Import Default Config", false,101)]
         static void ImportDefaultConfig()
         {
-            XvPrefabsUtils.ImportXvManager();
-            XvPrefabsUtils.ImportGesture();
-            XvPrefabsUtils.ImportXvThrowScene();
+            XvPrefabsCreator.ImportXvManager();
+            XvPrefabsCreator.ImportGesture();
+            XvPrefabsCreator.ImportXvThrowScene();
         }
 
+        #endregion
+
+
+        #region HotUpdate 
+        [MenuItem("Holo-XR/HotUpdate/Import Dll Loader", false, 101)]
+        static void ImportDllLoader()
+        {
+            HURComponentCreator.ImportDllLoader();
+        }
+
+        [MenuItem("Holo-XR/HotUpdate/BuildBundle-Android")]
+        public static void BuildBundle_Android()
+        {
+            HURComponentCreator.ExportDllAndAssetsBundle();
+        }
+
+        #endregion
+
+        #region Other
         //在Unity菜单中创建一个菜单路径用于设置宏定义
         [MenuItem("Holo-XR/Settings")]
         public static void Setting()
         {
-            Rect windowRect = new Rect(100, 100, 240, 150);
+            Rect windowRect = new Rect(100, 100, 240, 180);
             SettingsWindow win = EditorWindow.GetWindowWithRect<SettingsWindow>(windowRect, false, "Holo-Settings");
             //win.titleContent = new GUIContent("全局设置");
             win.Show();
         }
+
+        #endregion
     }
 }

@@ -1,19 +1,33 @@
 
 namespace Holo.XR.Config
 {
-    class HoloConfig
+    internal class HoloConfig
     {
         /// <summary>
         /// CSLAM 地图包后缀
         /// </summary>
-        public static string mapPackageSuffix = ".homap";
+        public static string mapPackageSuffix { get; } = ".homap";
 
         //地图存储解压的临时文件
-        public static string cslamMapSuffix = ".bin";
-        public static string tagPoseSuffix = ".eq";
+        public static string cslamMapSuffix { get; } = ".bin";
+        public static string tagPoseSuffix { get; } = ".eq";
 
         //cache相对路径
-        public static string cacheFolder = "/cache/";
+        public static string cacheFolder { get; } = "/cache/";
+
+        #region 热更新配置
+        //热更新时场景预制件名称
+        public static string hotUpdateScenePrefabPath { get; } = "HoloScene.prefab";
+
+        //热更时AB包名
+        public static string hotUpdateAbName { get; } = "hur";
+
+        //热更数据相对文件夹
+        public static string hotUpdateDataFolder { get; } = "/data/";
+
+        //热更主场景配置文件
+        public static string sceneConfig { get; } = "scene.cfg";
+        #endregion
     }
 
     public class EditorConfig
@@ -26,6 +40,24 @@ namespace Holo.XR.Config
         {
             string suffix = HoloConfig.mapPackageSuffix.TrimStart('.');
             return suffix;
+        }
+
+        /// <summary>
+        /// 获取场景预制件名称
+        /// </summary>
+        /// <returns></returns>
+        public static string GetScenePrefabPath()
+        {
+            return HoloConfig.hotUpdateScenePrefabPath;
+        }
+
+        /// <summary>
+        /// 获取热更时AB包名
+        /// </summary>
+        /// <returns></returns>
+        public static string GetHotUpdateAbName()
+        {
+            return HoloConfig.hotUpdateAbName;
         }
     }
 }
