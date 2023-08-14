@@ -1,6 +1,9 @@
 
 using Holo.XR.Editor.Utils;
 using Holo.XR.Editor.UX;
+#if HYBIRDCLR_ENABLED
+using HybridCLR.Editor.Installer;
+#endif
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -88,25 +91,41 @@ namespace Holo.XR.Editor
 
         #region HotUpdate 
 
-        [MenuItem("Holo-XR/HotUpdate/Install HybridCLR", false, 101)]
-        static void InstallHybirdCLR()
-        {
-            HybridCLRInstaller.Import();
-        }
 
-        [MenuItem("Holo-XR/HotUpdate/Import Dll Loader", false, 101)]
+        [MenuItem("Holo-XR/HotUpdate/Import Dll Loader", false, 201)]
         static void ImportDllLoader()
         {
             HURComponentCreator.ImportDllLoader();
         }
 
-        [MenuItem("Holo-XR/HotUpdate/BuildBundle-Android")]
+        [MenuItem("Holo-XR/HotUpdate/BuildBundle-Android", false, 401)]
         public static void BuildBundle_Android()
         {
             HURComponentCreator.ExportDllAndAssetsBundle();
         }
 
-        #endregion
+
+        [MenuItem("Holo-XR/HotUpdate/Import HybridCLR", false, 301)]
+        static void InstallHybirdCLR()
+        {
+            HybridCLRInstaller.Import();
+        }
+
+#if HYBIRDCLR_ENABLED
+
+        [MenuItem("Holo-XR/HotUpdate/HybridCLR Installer...", priority = 302)]
+        private static void Open()
+        {
+            InstallerWindow window = EditorWindow.GetWindow<InstallerWindow>("HybridCLR Installer", true);
+            window.minSize = new Vector2(800f, 500f);
+        }
+
+        [MenuItem("Holo-XR/HotUpdate/HybridCLR Settings...", priority = 303)]
+        public static void OpenSettings() => SettingsService.OpenProjectSettings("Project/HybridCLR Settings");
+
+#endif
+
+#endregion
 
         #region Other
         //在Unity菜单中创建一个菜单路径用于设置宏定义
