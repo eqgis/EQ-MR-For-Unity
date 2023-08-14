@@ -32,7 +32,7 @@ namespace Holo.XR.Editor.Utils
             dllLoader.tag = tag;
             PopWindow.Show("已添加至\"" + mapObj.name + "\"", 200, 80);
 #else
-            PopWindow.Show("未启用热更新",200,80ME);
+            PopWindow.Show("未启用热更新",200,80);
 #endif
         }
 

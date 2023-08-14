@@ -1,3 +1,4 @@
+using Holo.XR.Editor.Utils;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -18,7 +19,7 @@ namespace Holo.XR.Editor.UX
             Debug.Log(m_Macor);
             m_List.Clear();
             //在这里加入你自己想要定义的宏
-            m_List.Add(new MacorItem() { Name = "HYBIRDCLR_ENABLED", DisplayName = "热更新 (需先导入HybirdCLR)", IsDebug = false, IsRelease = false });
+            m_List.Add(new MacorItem() { Name = "HYBIRDCLR_ENABLED", DisplayName = "热更新 (需先安装HybirdCLR)", IsDebug = false, IsRelease = false });
 
             m_List.Add(new MacorItem() { Name = "DEBUG_MODEL", DisplayName = "调试模式", IsDebug = true, IsRelease = false });
             m_List.Add(new MacorItem() { Name = "DEBUG_LOG", DisplayName = "打印日志", IsDebug = true, IsRelease = false });
@@ -69,6 +70,12 @@ namespace Holo.XR.Editor.UX
 
             EditorGUILayout.BeginHorizontal("box");
             m_Dic[m_List[0].Name] = GUILayout.Toggle(m_Dic[m_List[0].Name], m_List[0].DisplayName);
+
+            if (GUILayout.Button("Install HybirdCLR", GUILayout.Width(120)))
+            {
+                HybridCLRInstaller.Import();
+            }
+
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal("box");

@@ -8,7 +8,7 @@ using UnityEngine.Windows;
 
 namespace Holo.XR.Editor
 {
-    public class HoloMenu :EditorUtility
+    public class HoloMenu : EditorUtility
     {
         #region MenuItem
         [MenuItem("Holo-XR/Build Bundle - B50R", false)]
@@ -72,10 +72,10 @@ namespace Holo.XR.Editor
         [MenuItem("Holo-XR/Scene Config/Import MapScanner", false, 105)]
         static void ImportMapScanner()
         {
-            XvPrefabsCreator.ImportMapScanner(null,null);
+            XvPrefabsCreator.ImportMapScanner(null, null);
         }
 
-        [MenuItem("Holo-XR/Scene Config/Import Default Config", false,101)]
+        [MenuItem("Holo-XR/Scene Config/Import Default Config", false, 101)]
         static void ImportDefaultConfig()
         {
             XvPrefabsCreator.ImportXvManager();
@@ -87,6 +87,13 @@ namespace Holo.XR.Editor
 
 
         #region HotUpdate 
+
+        [MenuItem("Holo-XR/HotUpdate/Install HybridCLR", false, 101)]
+        static void InstallHybirdCLR()
+        {
+            HybridCLRInstaller.Import();
+        }
+
         [MenuItem("Holo-XR/HotUpdate/Import Dll Loader", false, 101)]
         static void ImportDllLoader()
         {
