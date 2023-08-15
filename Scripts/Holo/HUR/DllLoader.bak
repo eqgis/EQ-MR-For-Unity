@@ -1,0 +1,198 @@
+
+using Holo.XR.Android;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Networking;
+
+#if HYBIRDCLR_ENABLED
+using HybridCLR;
+#endif
+
+namespace Holo.HUR
+{
+    /// <summary>
+    /// 进度更新
+    /// </summary>
+    /// <param name="progress"></param>
+    /// <param name="currentDownloadAssets"></param>
+    public delegate void ProgressUpdateDelegate(int currentIndex,int total, string currentDownloadAssets);
+
+    /// <summary>
+    /// DLL加载器
+    /// <inheritdoc>用于加载热更内容</inheritdoc>
+    /// </summary>
+    public class DllLoader : MonoBehaviour
+    {
+        [Header("资源加载完成后执行事件")]
+        public UnityEvent loadComplete;
+
+        [Header("热更新 AssetsBundle")]
+        public List<string> assetsBundleNameList = new List<string>();
+
+        [Header("热更新 DLL")]
+        public List<string> hotUpdateAssemblyNameList = new List<string>();
+
+        [Header("补充元数据AOT dlls")]
+        public List<string> patchAOT_Assemblies = new List<string>();
+
+        /// <summary>
+        /// AOT元数据DLL
+        /// </summary>
+        //private static List<string> AOTMetaAssemblyFiles = new List<string>()
+        //{
+        //    "mscorlib.dll.bytes",
+        //    "System.dll.bytes",
+        //    "System.Core.dll.bytes",
+        //};
+
+        public event ProgressUpdateDelegate OnProgressUpdate;
+
+
+        /// <summary>
+        /// 数据字典
+        /// 名称全称：数据内容
+        /// </summary>
+        private Dictionary<string, byte[]> s_assetDatas = new Dictionary<string, byte[]>();
+        
+        /// <summary>
+        /// 读取数据
+        /// </summary>
+        /// <param name="dllName"></param>
+        /// <returns></returns>
+        public byte[] ReadBytesFromDictionary(string dllName)
+        {
+            return s_assetDatas[dllName];
+        }
+
+        void Start()
+        {
+            StartCoroutine(DownLoadAssets(this.StartGame));
+        }
+
+
+        private string GetWebRequestPath(string asset)
+        {
+            var path = $"{Application.streamingAssetsPath}/{asset}";
+            if (!path.Contains("://"))
+            {
+                path = "file://" + path;
+            }
+            return path;
+        }
+
+        #region download assets
+
+        IEnumerator DownLoadAssets(Action onDownloadComplete)
+        {
+            List<string> assets = new List<string>();
+
+            //注意：加载顺序，AOTMetaAssemblt->热更dll->AB包
+            foreach (var item in patchAOT_Assemblies)
+            {
+                assets.Add(item + ".dll.bytes");
+            }
+
+            foreach (var item in hotUpdateAssemblyNameList)
+            {
+                assets.Add(item + ".dll.bytes");
+            }
+
+            foreach (var item in assetsBundleNameList)
+            {
+                assets.Add(item);
+            }
+
+
+
+            //总数，计算进度
+            int max = assets.Count;
+
+            for (int i = 0; i < assets.Count; i++)
+            {
+                //更新进度
+                if (OnProgressUpdate != null)
+                {
+                    OnProgressUpdate(i, max, assets[i]);
+                }
+
+                string asset = assets[i];
+                
+                //asset为单个文件名称
+                string dllPath = GetWebRequestPath(asset);
+#if DEBUG_LOG
+                EqLog.i("DllLoader", $"start download asset:{dllPath}");
+#endif
+                UnityWebRequest www = UnityWebRequest.Get(dllPath);
+                yield return www.SendWebRequest();
+
+#if UNITY_2020_1_OR_NEWER
+                if (www.result != UnityWebRequest.Result.Success)
+                {
+                    EqLog.e("DllLoader",www.error);
+                }
+#else
+            if (www.isHttpError || www.isNetworkError)
+            {
+                EqLog.e("DllLoader",www.error);
+            }
+#endif
+                else
+                {
+                    // Or retrieve results as binary data
+                    byte[] assetData = www.downloadHandler.data;
+#if DEBUG_LOG
+                    EqLog.i("DllLoader", $"dll:{asset}  size:{assetData.Length}");
+#endif
+                    s_assetDatas[asset] = assetData;
+                }
+            }
+
+            onDownloadComplete();
+        }
+
+        #endregion
+
+        /// <summary>
+        /// 为aot assembly加载原始metadata， 这个代码放aot或者热更新都行。
+        /// 一旦加载后，如果AOT泛型函数对应native实现不存在，则自动替换为解释模式执行
+        /// </summary>
+        private void LoadMetadataForAOTAssemblies()
+        {
+#if HYBIRDCLR_ENABLED
+            /// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
+            /// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
+            /// 
+            HomologousImageMode mode = HomologousImageMode.SuperSet;
+            foreach (var aotDllName in patchAOT_Assemblies)
+            {
+                byte[] dllBytes = ReadBytesFromDictionary(aotDllName);
+                // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
+                LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, mode);
+#if DEBUG_LOG
+                Debug.Log($"LoadMetadataForAOTAssembly:{aotDllName}. mode:{mode} ret:{err}");
+#endif
+            }
+#endif
+        }
+
+        void StartGame()
+        {
+            //加载原始metadata
+            LoadMetadataForAOTAssemblies();
+
+            //加载热更Assembly
+
+
+            if (loadComplete != null)
+            {
+                loadComplete.Invoke();
+            }
+        }
+
+    }
+
+
+}
