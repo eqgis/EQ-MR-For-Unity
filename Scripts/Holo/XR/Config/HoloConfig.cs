@@ -16,8 +16,8 @@ namespace Holo.XR.Config
         public static string cacheFolder { get; } = "/cache/";
 
         #region 热更新配置
-        //热更新时场景预制件名称
-        public static string hotUpdateScenePrefabPath { get; } = "HoloScene.prefab";
+        //热更新时数据包名称
+        public static string hotUpdateDataName { get; } = "HoloData";
 
         //热更时AB包名
         public static string hotUpdateAbName { get; } = "hur";
@@ -42,14 +42,6 @@ namespace Holo.XR.Config
             return suffix;
         }
 
-        /// <summary>
-        /// 获取场景预制件名称
-        /// </summary>
-        /// <returns></returns>
-        public static string GetScenePrefabPath()
-        {
-            return HoloConfig.hotUpdateScenePrefabPath;
-        }
 
         /// <summary>
         /// 获取热更时AB包名
@@ -58,6 +50,15 @@ namespace Holo.XR.Config
         public static string GetHotUpdateAbName()
         {
             return HoloConfig.hotUpdateAbName;
+        }
+
+        /// <summary>
+        /// 获取热更数据名称
+        /// </summary>
+        /// <returns></returns>
+        public static string GetHotDataName()
+        {
+            return HoloConfig.hotUpdateDataName;
         }
     }
 }

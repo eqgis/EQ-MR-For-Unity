@@ -4,6 +4,7 @@ using HybridCLR.Editor;
 using HybridCLR.Editor.Commands;
 #endif
 using System.IO;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine;
 
@@ -77,7 +78,7 @@ namespace Holo.XR.Editor.Utils
             {
                 string dllPath = $"{hotfixDllSrcDir}/{dll}";
                 string dllBytesPath = $"{hotfixAssembliesDstDir}/{dll}.bytes";
-                File.Copy(dllPath, dllBytesPath, true);
+                Copy(dllPath, dllBytesPath);//加密热更DLL
                 Debug.Log($"[CopyHotUpdateAssembliesToStreamingAssets] copy hotfix dll {dllPath} -> {dllBytesPath}");
             }
 #endif
@@ -102,7 +103,7 @@ namespace Holo.XR.Editor.Utils
                     continue;
                 }
                 string dllBytesPath = $"{aotAssembliesDstDir}/{dll}.dll.bytes";
-                File.Copy(srcDllPath, dllBytesPath, true);
+                Copy(srcDllPath, dllBytesPath);
                 Debug.Log($"[CopyAOTAssembliesToStreamingAssets] copy AOT dll {srcDllPath} -> {dllBytesPath}");
             }
 #endif
@@ -152,6 +153,41 @@ namespace Holo.XR.Editor.Utils
 #else
 				return false;
 #endif
+        }
+
+
+        /// <summary>
+        /// 对数据进行加密并拷贝
+        /// </summary>
+        /// <param name="srcFilePath"></param>
+        /// <param name="encryptedFilePath"></param>
+        internal static void Copy(string srcFilePath, string encryptedFilePath)
+        {
+            // 加密
+            using (Aes aesAlg = Aes.Create())
+            {
+                byte[] key = aesAlg.Key;
+                byte[] iv = aesAlg.IV;
+                using (FileStream fsSrc = new FileStream(srcFilePath, FileMode.Open))
+                using (FileStream fsEncrypted = new FileStream(encryptedFilePath, FileMode.Create))
+                {
+                    fsEncrypted.Write(key, 0, key.Length);
+                    fsEncrypted.Write(iv, 0, iv.Length);
+                    {
+
+                        using (ICryptoTransform encryptor = aesAlg.CreateEncryptor())
+                        using (CryptoStream csEncrypt = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write))
+                        {
+                            byte[] buffer = new byte[4096];
+                            int bytesRead;
+                            while ((bytesRead = fsSrc.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                csEncrypt.Write(buffer, 0, bytesRead);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     }
