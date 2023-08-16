@@ -1,8 +1,10 @@
 
 namespace Holo.XR.Config
 {
-    internal class HoloConfig
+    public class HoloConfig
     {
+        #region CSLAM地图数据读写
+
         /// <summary>
         /// CSLAM 地图包后缀
         /// </summary>
@@ -14,6 +16,8 @@ namespace Holo.XR.Config
 
         //cache相对路径
         public static string cacheFolder { get; } = "/cache/";
+
+        #endregion
 
         #region 热更新配置
         //热更新时数据包名称
@@ -43,6 +47,17 @@ namespace Holo.XR.Config
         }
 
 
+        #region hotFix
+        /// <summary>
+        /// 获取场景配置文件的名称
+        /// </summary>
+        /// <returns></returns>
+        public static string GetSceneConfigName()
+        {
+            return HoloConfig.sceneConfig;
+        }
+
+
         /// <summary>
         /// 获取热更时AB包名
         /// </summary>
@@ -60,5 +75,6 @@ namespace Holo.XR.Config
         {
             return HoloConfig.hotUpdateDataName;
         }
+        #endregion
     }
 }
