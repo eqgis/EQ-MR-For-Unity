@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using Holo.XR.Editor.Utils;
 using Holo.XR.Utils;
+using Holo.Data;
+using LitJson;
 
 namespace Holo.XR.Editor.UX
 {
@@ -84,14 +86,21 @@ namespace Holo.XR.Editor.UX
                     return;
                 }
 
-                //打包热更DLL（包含环境检测，因此优先执行）
+                //1、打包热更DLL（包含环境检测，因此优先执行）
                 ExportUtils.ExecExport();
 
 
                 //输出路径
                 string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
-                //创建静态资源ab包
+                //2、创建静态资源ab包
                 CreateAssetBundle(outPutPath);
+
+                //3、创建场景配置文件路径
+                string cfgPath =  outPutPath +"/"+ XR.Config.EditorConfig.GetSceneConfigName();
+                //构建场景数据并写入
+                SceneEntity sceneEntity = new SceneEntity();
+                sceneEntity.MainScene = sceneNames[mainSceneIndex];
+                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity));
 
                 //要打包的文件路径
                 string[] files = Directory.GetFiles(outPutPath);
