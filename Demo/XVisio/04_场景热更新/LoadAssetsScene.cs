@@ -9,7 +9,7 @@ using UnityEngine;
 public class LoadAssetsScene : MonoBehaviour
 {
     public DllLoader dllLoader;
-    // Start is called before the first frame update
+    // Start is called before the first frame udate
    
     /// <summary>
     /// 加载资源中的Scene
