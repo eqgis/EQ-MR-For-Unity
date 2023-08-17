@@ -1,10 +1,10 @@
 
 #if HYBIRDCLR_ENABLED
+using Holo.HUR;
 using HybridCLR.Editor;
 using HybridCLR.Editor.Commands;
 #endif
 using System.IO;
-using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine;
 
@@ -163,38 +163,7 @@ namespace Holo.XR.Editor.Utils
         /// <param name="encryptedFilePath"></param>
         internal static void Copy(string srcFilePath, string encryptedFilePath)
         {
-
-            try
-            {
-                // ¼ÓÃÜ
-                using (Aes aesAlg = Aes.Create())
-                {
-                    byte[] key = aesAlg.Key;
-                    byte[] iv = aesAlg.IV;
-                    using (FileStream fsSrc = new FileStream(srcFilePath, FileMode.Open))
-                    using (FileStream fsEncrypted = new FileStream(encryptedFilePath, FileMode.Create))
-                    {
-                        fsEncrypted.Write(key, 0, key.Length);
-                        fsEncrypted.Write(iv, 0, iv.Length);
-                        {
-
-                            using (ICryptoTransform encryptor = aesAlg.CreateEncryptor())
-                            using (CryptoStream csEncrypt = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write))
-                            {
-                                byte[] buffer = new byte[4096];
-                                int bytesRead;
-                                while ((bytesRead = fsSrc.Read(buffer, 0, buffer.Length)) > 0)
-                                {
-                                    csEncrypt.Write(buffer, 0, bytesRead);
-                                }
-                            }
-                        }
-                    }
-                }
-            }catch (IOException ex)
-            {
-                Debug.LogWarning(ex);
-            }
+            DataIO.Copy(srcFilePath, encryptedFilePath);
         }
 
     }

@@ -1,7 +1,5 @@
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using Unity;
+using System;
+using System.Reflection;
 
 namespace Holo.HUR
 {
@@ -38,33 +36,61 @@ namespace Holo.HUR
         /// </summary>
         /// <param name="srcFilePath"></param>
         /// <returns></returns>
-        private static byte[] ReadFromPath(string srcFilePath)
+        public static byte[] ReadFromPath(string srcFilePath)
         {
             // ½âÃÜ
-            using (Aes aesAlg = Aes.Create())
+            return DataUtils.Instance.Decrypt(srcFilePath);
+        }
+
+        /// <summary>
+        /// ¿½±´ÎÄ¼þ
+        /// </summary>
+        /// <param name="srcFilePath"></param>
+        /// <param name="targetFilePath"></param>
+        public static void Copy(string srcFilePath, string targetFilePath) { 
+            DataUtils.Instance.Encrypt(srcFilePath, targetFilePath);
+        }
+
+    }
+
+    internal class DataUtils
+    {
+        private static readonly object lockObject = new object();
+        private MethodInfo encrypt;
+        private MethodInfo decrypt;
+        private static DataUtils instance = null;
+
+        private DataUtils()
+        {
+            Type type = Type.GetType("Holo.XR.Utils.EqAesUtils");
+            if (type != null)
             {
-                using (FileStream fsEncrypted = new FileStream(srcFilePath, FileMode.Open))
-                using (MemoryStream fs = new MemoryStream())
+                encrypt = type.GetMethod("Encrypt", BindingFlags.NonPublic | BindingFlags.Static);
+                decrypt = type.GetMethod("Decrypt", BindingFlags.NonPublic | BindingFlags.Static);
+            }
+        }
+        public static DataUtils Instance {
+            get
+            {
+                lock (lockObject)
                 {
-                    byte[] key2 = new byte[32];
-                    byte[] iv2 = new byte[16];
-                    fsEncrypted.Read(key2, 0, key2.Length);
-                    fsEncrypted.Read(iv2, 0, iv2.Length);
-                    using (ICryptoTransform decryptor = aesAlg.CreateDecryptor(key2, iv2))
-                    using (CryptoStream csDecrypt = new CryptoStream(fsEncrypted, decryptor, CryptoStreamMode.Read))
+                    if (instance == null)
                     {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = csDecrypt.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            fs.Write(buffer, 0, bytesRead);
-                        }
-                        return fs.ToArray();
+                        instance = new DataUtils();
                     }
+                    return instance;
                 }
             }
         }
-    }
 
+        public void Encrypt(string srcFilePath, string encryptedFilePath)
+        {
+            encrypt.Invoke(this, new object[] { srcFilePath, encryptedFilePath });
+        }
+
+        public byte[] Decrypt(string srcFilePath) { 
+            return (byte[])decrypt.Invoke(this, new object[] {srcFilePath});
+        }
+    }
 
 }

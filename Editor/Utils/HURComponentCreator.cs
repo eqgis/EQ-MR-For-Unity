@@ -39,7 +39,6 @@ namespace Holo.XR.Editor.Utils
             DllLoader loader = dllLoader.GetComponent<DllLoader>();
             loader.assetsBundleNameList.Add(Holo.XR.Config.EditorConfig.GetHotUpdateAbName());
 
-#if HYBIRDCLR_ENABLED
             //同步热更DLL列表
             foreach (var item in SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)
             {
@@ -58,7 +57,6 @@ namespace Holo.XR.Editor.Utils
             {
                 loader.patchAOT_Assemblies.Add(item);
             }
-#endif
 
             dllLoader.transform.parent = mapObj.transform;
             dllLoader.tag = tag;
