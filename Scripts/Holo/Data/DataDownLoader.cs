@@ -248,7 +248,8 @@ namespace Holo.Data
                         UnzipCallback unzipCallback = new UnzipCallback();
                         unzipCallback.after = execTaskAfterUnzip;
                         //解压数据
-                        ZipHelper.Instance.UnzipFile(dataSavePath, unZipFolderPath, "ikkyu", unzipCallback);
+                        //ZipHelper.Instance.UnzipFile(dataSavePath, unZipFolderPath, "ikkyu", unzipCallback);
+                        ZipHelper.Instance.UnzipFile(dataSavePath, unZipFolderPath, "ikkyu", null);
 
                         Debug.Log("数据下载完成！");
 
