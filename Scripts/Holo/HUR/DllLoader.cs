@@ -30,7 +30,10 @@ namespace Holo.HUR
     /// </summary>
     public class DllLoader : MonoBehaviour
     {
-        [Header("资源加载完成后，自动进入主场景")]
+        [Header("组件启动时，自动读取热更数据")]
+        public bool autoReadData = false;
+
+        [Header("资源加载完成后，自动加载入口场景")]
         public bool autoEnter = true;
 
         [Header("资源加载完成后执行事件")]
@@ -60,12 +63,20 @@ namespace Holo.HUR
 
         void Start()
         {
+            if (autoReadData)
+            {
+                StartReadData();
+            }
+        }
+
+        public void StartReadData()
+        {
             //读取配置文件中的主场景名称
             string cfgJsonPath = localFolderPath + XR.Config.HoloConfig.sceneConfig;
             if (!File.Exists(cfgJsonPath))
             {
 #if DEBUG
-                    AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
+                AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
 #endif
                 //默认入口为“Main”
                 this.hotUpdateMainSceneName = "Main";

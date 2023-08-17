@@ -33,17 +33,21 @@ namespace Holo.XR.Editor.UX
         private void OnGUI()
         {
             GUILayout.Space(10);
-            GUILayout.Label("选择场景导出:", EditorStyles.boldLabel);
+            GUILayout.Label("打包下列所有场景:", EditorStyles.boldLabel);
             GUILayout.Space(5);
 
+            EditorGUILayout.BeginVertical("box");
             for (int i = 0; i < sceneSelections.Length; i++)
             {
-                sceneSelections[i] = GUILayout.Toggle(sceneSelections[i], sceneNames[i]);
+                //sceneSelections[i] = GUILayout.Toggle(sceneSelections[i], sceneNames[i]);
+                sceneSelections[i] = true;
+                GUILayout.Label((i+1)+"."+sceneNames[i], EditorStyles.miniBoldLabel);
             }
+            EditorGUILayout.EndVertical();
 
 
             GUILayout.Space(5);
-            GUILayout.Label("注:若没有场景列出\n    请先在File->Build Settins中添加场景");
+            GUILayout.Label("注:在File->Build Settins中修改场景");
             GUILayout.Space(10);
 
             GUILayout.Label("指定场景作为入口:", EditorStyles.boldLabel);
@@ -68,6 +72,7 @@ namespace Holo.XR.Editor.UX
 
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace(); // 创建一个伸缩空间，将按钮推到水平中心
+
 
             if (GUILayout.Button("导出", GUILayout.Width(100)))
             {
@@ -210,7 +215,7 @@ namespace Holo.XR.Editor.UX
             BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
             // Build the AssetBundle
             AssetBundleBuild[] assetBundleBuilds = new AssetBundleBuild[1];
-            assetBundleBuilds[0].assetBundleName = Holo.XR.Config.EditorConfig.GetHotUpdateAbName();
+            assetBundleBuilds[0].assetBundleName = Config.EditorConfig.GetHotUpdateAbName();
             assetBundleBuilds[0].assetNames = scenesToBuild.ToArray();
 
             /*
