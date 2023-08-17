@@ -116,7 +116,9 @@ namespace Holo.HUR
                     OnProgressUpdate(count, max, item);
                 }
 
+#if !UNITY_EDITOR
                 ReadDataFromPersistent(item + ".dll.bytes", AssetsType.AOT_META_ASSEMBLY);
+#endif
             }
 
             //ÈÈ¸üDLL
@@ -129,7 +131,9 @@ namespace Holo.HUR
                     OnProgressUpdate(count, max, item);
                 }
 
+#if !UNITY_EDITOR
                 ReadDataFromPersistent(item + ".dll.bytes", AssetsType.HOT_UPDATE_ASSEMBLY);
+#endif
             }
 
             foreach (var item in assetsBundleNameList)
@@ -141,7 +145,9 @@ namespace Holo.HUR
                     OnProgressUpdate(count, max, item);
                 }
 
+#if !UNITY_EDITOR
                 ReadDataFromPersistent(item, AssetsType.ASSETS_BUNDLE);
+#endif
             }
 
 
@@ -204,7 +210,7 @@ namespace Holo.HUR
         }
 
 
-        #endregion
+#endregion
 
 
 
