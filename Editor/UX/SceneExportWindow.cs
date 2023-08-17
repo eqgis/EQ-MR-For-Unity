@@ -92,14 +92,13 @@ namespace Holo.XR.Editor.UX
                 //1、打包热更DLL（包含环境检测，因此优先执行）
                 ExportUtils.ExecExport();
 
-
                 //输出路径
                 string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
                 //2、创建静态资源ab包
                 CreateAssetBundle(outPutPath);
 
                 //3、创建场景配置文件路径
-                string cfgPath =  outPutPath +"/"+ XR.Config.EditorConfig.GetSceneConfigName();
+                string cfgPath =  outPutPath +"/"+ Config.EditorConfig.GetSceneConfigName();
                 //构建场景数据并写入
                 SceneEntity sceneEntity = new SceneEntity();
                 //记录入口场景
@@ -118,26 +117,28 @@ namespace Holo.XR.Editor.UX
                         string filePath = item.Replace("\\", "/");
                         sourceFileList.Add(filePath);
 
-                        //非配置文件
-                        string nonCfgFile = Path.GetFileName(filePath);
-                        if(!nonCfgFile.Equals(Config.EditorConfig.GetSceneConfigName()))
+                        string fileName = Path.GetFileName(filePath);
+                        if (!fileName.Equals(Config.EditorConfig.GetSceneConfigName()))
                         {
-                            sceneEntity.FileList.Add(nonCfgFile);
+                            sceneEntity.FileList.Add(fileName);
                         }
                     }
                 }
 
                 //记录文件清单 2023年8月17日21:46:00
-                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity));
+                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity),System.Text.Encoding.UTF8);
+
+                //输出包添加cfg文件
+                sourceFileList.Add(cfgPath);
 
                 //数据包输出路径
                 string dataPath = Directory.GetParent(Application.dataPath).ToString() + "/HoloData";
                 Directory.CreateDirectory(dataPath);
 
-                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/"+Holo.XR.Config.EditorConfig.GetHotDataName()+"_v"+dataVersion+".zip",null,null);
-
                 //刷新数据库，会自动更新meta文件
                 AssetDatabase.Refresh();
+
+                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/"+Holo.XR.Config.EditorConfig.GetHotDataName()+"_v"+dataVersion+".zip",null,null);
 
 #if UNITY_EDITOR
                 Debug.Log("导出成功!");

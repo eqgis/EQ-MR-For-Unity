@@ -210,7 +210,9 @@ namespace Holo.HUR
 
         void OnLoadComplete()
         {
-
+#if DEBUG_LOG
+            Debug.Log("OnLoadComplete");
+#endif
             if (loadComplete != null)
             {
                 loadComplete.Invoke();

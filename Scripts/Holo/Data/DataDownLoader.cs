@@ -1,8 +1,10 @@
 using Holo.XR.Android;
 using Holo.XR.Utils;
+using LitJson;
 using System;
 using System.Collections;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
@@ -25,21 +27,18 @@ namespace Holo.Data
 
         [Header("数据更新完成后执行")]
         public UnityEvent updateDataCompleted;
-        //数据解压路径
-        private string unZipFolderPath;
+        //数据保存路径
+        private string saveFolderPath;
 
         /// <summary>
-        /// 服务器上检测出来的最新的数据名称(带格式后缀)
+        /// 服务器上检测出来的最新的数据名称(文件夹)
         /// </summary>
-        private string lastestDataFullName;
-
-        //数据包临时存储路径
-        private string dataSavePath;
+        private string lastestDataFolderName;
 
         private void Awake()
         {
             //数据保存的文件夹路径（采用热更数据路径）
-            unZipFolderPath = Application.persistentDataPath + Holo.XR.Config.HoloConfig.hotUpdateDataFolder;
+            saveFolderPath = Application.persistentDataPath + Holo.XR.Config.HoloConfig.hotUpdateDataFolder;
         }
 
         private void Start()
@@ -70,6 +69,7 @@ namespace Holo.Data
         /// <returns></returns>
         private IEnumerator CheckDataVersion()
         {
+            //逻辑：获取服务器的最新版本信息，与本地的版本信息比对
             string baseUrl = url + "/" + webVersionFileName;
             using (UnityWebRequest webRequest = UnityWebRequest.Get(baseUrl))
             {
@@ -94,8 +94,7 @@ namespace Holo.Data
                     float maxVersion = 0;
                     foreach (string line in fileLines)
                     {
-                        string fileFullName = line.Trim();
-                        string content = Path.GetFileNameWithoutExtension(fileFullName); // 去除空格和换行符
+                        string content = Path.GetFileNameWithoutExtension(line.Trim()); // 去除空格和换行符
 
                         //“#”开头则跳过该行
                         if (!content.StartsWith("#"))
@@ -111,7 +110,8 @@ namespace Holo.Data
                                 {
                                     //取最大version
                                     maxVersion = versionValue;
-                                    lastestDataFullName = fileFullName; ;
+                                    //文件夹名称，无后缀
+                                    lastestDataFolderName = content;
                                 }
                             }
                         }
@@ -144,10 +144,10 @@ namespace Holo.Data
         private bool CheckLocalData(float maxVersion)
         {
             //若文件夹路径都不存在，则直接返回false，表示不存在
-            if (!Directory.Exists(unZipFolderPath)) { return false; }
+            if (!Directory.Exists(saveFolderPath)) { return false; }
 
             //从数据解压路径读取版本文件
-            string localVersionFilePath = unZipFolderPath + webVersionFileName;
+            string localVersionFilePath = saveFolderPath + webVersionFileName;
             //判断文件是否存在
             if (!File.Exists(localVersionFilePath))
             {
@@ -196,18 +196,17 @@ namespace Holo.Data
         {
             if (!needUpdate)
             {
-                //数据不需要更新
-                //nextAction.Invoke();
-                execTaskAfterUnzip();
+                //执行unity事件
+                updateDataCompleted.Invoke();
             }
             else
             {
-                string zipUrl = url + "/" + lastestDataFullName;
+                string cfgFile = url + "/" + lastestDataFolderName + "/" + XR.Config.HoloConfig.sceneConfig;
 #if DEBUG
                 Debug.Log("正在更新...");
 #endif
-
-                using (UnityWebRequest webRequest = UnityWebRequest.Get(zipUrl))
+                //读取配置文件，配置文件中带有数据文件清单
+                using (UnityWebRequest webRequest = UnityWebRequest.Get(cfgFile))
                 {
                     yield return webRequest.SendWebRequest();
 
@@ -216,65 +215,65 @@ namespace Holo.Data
 #if DEBUG
                         if (Application.platform == RuntimePlatform.Android)
                         {
-                            AndroidUtils.Toast("数据下载失败—请检查网络");
+                            AndroidUtils.Toast("数据清单获取失败—请检查网络");
                         }
 #endif
                         EqLog.e("DataDownLoader", "Error downloading data: " + webRequest.error);
-                        Debug.LogWarning("数据下载失败—请检查网络");
+                        Debug.LogWarning("数据清单获取失败—请检查网络");
                     }
                     else
                     {
-                        if (!Directory.Exists(unZipFolderPath))
+                        if (!Directory.Exists(saveFolderPath))
                         {
-                            Directory.CreateDirectory(unZipFolderPath);
+                            Directory.CreateDirectory(saveFolderPath);
                         }
-                        //数据保存路径
-                        dataSavePath = unZipFolderPath + lastestDataFullName;
+                        //数据保存路径file/data/scene.cfg
                         // 保存下载的数据到本地文件
-                        File.WriteAllBytes(dataSavePath, webRequest.downloadHandler.data);
-                        Debug.Log("Zip downloaded and saved to: " + dataSavePath);
-
-                        //从数据解压路径读取版本文件
-                        string localVersionFilePath = unZipFolderPath + webVersionFileName;
-                        //判断文件是否存在
-                        if (File.Exists(localVersionFilePath))
+                        byte[] data = webRequest.downloadHandler.data;
+                        string sceneCfg = Encoding.UTF8.GetString(data);
+                        File.WriteAllBytes(saveFolderPath + XR.Config.HoloConfig.sceneConfig, data);
+                        Debug.Log("Scene.cfg downloaded and saved.");
+                        //根据文件清单下载其他文件
+                        SceneEntity sceneEntity = JsonMapper.ToObject<SceneEntity>(sceneCfg);
+                        System.Collections.Generic.List<string> fileList = sceneEntity.FileList;
+                        foreach (string file in fileList)
                         {
-                            File.Delete(localVersionFilePath);
+                            //网络文件路径
+                            string downloadFile = url + "/" + lastestDataFolderName + "/" + file;
+
+                            using (UnityWebRequest request = UnityWebRequest.Get(downloadFile))
+                            {
+                                yield return request.SendWebRequest();
+                                if (webRequest.result == UnityWebRequest.Result.Success)
+                                {
+                                    File.WriteAllBytes(saveFolderPath + file, webRequest.downloadHandler.data);
+                                }
+                                else {
+                                    Debug.LogWarning(file + "not found.");
+                                }
+                            }
+
+                            //从数据解压路径读取版本文件
+                            string localVersionFilePath = saveFolderPath + webVersionFileName;
+                            //判断文件是否存在
+                            if (File.Exists(localVersionFilePath))
+                            {
+                                File.Delete(localVersionFilePath);
+                            }
+                            //在本地路径写入当前数据版本信息
+                            File.WriteAllText(localVersionFilePath, "###Data Version###\n" + lastestDataFolderName);
+
+                            Debug.Log("数据下载完成！");
+
+                            //执行unity事件
+                            updateDataCompleted.Invoke();
                         }
-                        //在本地路径写入当前数据版本信息
-                        File.WriteAllText(localVersionFilePath, "###Data Version###\n" + lastestDataFullName);
-
-                        //设置数据解压完成后的Action
-                        UnzipCallback unzipCallback = new UnzipCallback();
-                        unzipCallback.after = execTaskAfterUnzip;
-                        //解压数据
-                        //ZipHelper.Instance.UnzipFile(dataSavePath, unZipFolderPath, "ikkyu", unzipCallback);
-                        ZipHelper.Instance.UnzipFile(dataSavePath, unZipFolderPath, "ikkyu", null);
-
-                        Debug.Log("数据下载完成！");
-
-
                     }
                 }
             }
+
+
         }
 
-
-        /// <summary>
-        /// 解压完成后执行任务
-        /// </summary>
-        private void execTaskAfterUnzip()
-        {
-            //解压完成自动清除数据包
-            if (File.Exists(dataSavePath))
-            {
-                //File.Delete(dataSavePath);
-            }
-
-            //执行unity事件
-            updateDataCompleted.Invoke();
-        }
     }
-
-
 }

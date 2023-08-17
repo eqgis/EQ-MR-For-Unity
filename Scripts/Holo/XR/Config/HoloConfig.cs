@@ -30,7 +30,7 @@ namespace Holo.XR.Config
         public static string hotUpdateDataFolder { get; } = "/data/";
 
         //热更主场景配置文件
-        public static string sceneConfig { get; } = "scene.cfg";
+        public static string sceneConfig { get; } = "scene.txt";
         #endregion
     }
 
