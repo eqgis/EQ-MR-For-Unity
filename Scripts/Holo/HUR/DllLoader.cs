@@ -164,7 +164,7 @@ namespace Holo.HUR
             if (!File.Exists(dllPath))
             {
 #if DEBUG_LOG
-                EqLog.w("DllLoader", "Caould not find " + asset);
+                EqLog.w("DllLoader", "Could not find " + asset);
 #endif
                 return;
             }

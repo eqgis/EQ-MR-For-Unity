@@ -18,7 +18,8 @@ namespace Holo.XR.Editor.UX
         private string[] sceneNames;
         private int mainSceneIndex = -1; // Index of the main scene
 
-        private string dataVersion; 
+        private string dataVersion;
+        private string dataPath;
 
         private void OnEnable()
         {
@@ -30,15 +31,15 @@ namespace Holo.XR.Editor.UX
             {
                 sceneNames[i] = System.IO.Path.GetFileNameWithoutExtension(EditorBuildSettings.scenes[i].path);
             }
+
+            //数据包输出路径
+            dataPath = Directory.GetParent(Application.dataPath).ToString() + "/HoloData";
+
+            dataVersion = DataIO.ReadNewVersion(dataPath);
         }
 
         private void OnGUI()
         {
-            //数据包输出路径
-            string dataPath = Directory.GetParent(Application.dataPath).ToString() + "/HoloData";
-
-            dataVersion = DataIO.ReadNewVersion(dataPath);
-
             GUILayout.Space(10);
             GUILayout.Label("打包下列所有场景:", EditorStyles.boldLabel);
             GUILayout.Space(5);
@@ -48,7 +49,7 @@ namespace Holo.XR.Editor.UX
             {
                 //sceneSelections[i] = GUILayout.Toggle(sceneSelections[i], sceneNames[i]);
                 sceneSelections[i] = true;
-                GUILayout.Label((i+1)+"."+sceneNames[i], EditorStyles.miniBoldLabel);
+                GUILayout.Label((i + 1) + "." + sceneNames[i], EditorStyles.miniBoldLabel);
             }
             EditorGUILayout.EndVertical();
 
@@ -85,7 +86,7 @@ namespace Holo.XR.Editor.UX
                 if (!float.TryParse(dataVersion, out float result))
                 {
                     Debug.LogError("\"数据版本\"设置有误，请输入一个合法数字" + result);
-                    PopWindow.Show("\"数据版本\"设置有误\n请输入一个合法数字",120,80);
+                    PopWindow.Show("\"数据版本\"设置有误\n请输入一个合法数字", 120, 80);
                     return;
                 }
 
@@ -121,7 +122,7 @@ namespace Holo.XR.Editor.UX
                 CreateAssetBundle(outPutPath);
 
                 //3、创建场景配置文件路径
-                string cfgPath =  outPutPath +"/"+ Config.EditorConfig.GetSceneConfigName();
+                string cfgPath = outPutPath + "/" + Config.EditorConfig.GetSceneConfigName();
                 //构建场景数据并写入
                 SceneEntity sceneEntity = new SceneEntity();
                 //记录入口场景
@@ -149,7 +150,7 @@ namespace Holo.XR.Editor.UX
                 }
 
                 //记录文件清单 2023年8月17日21:46:00
-                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity),new UTF8Encoding(false));
+                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity), new UTF8Encoding(false));
 
                 //输出包添加cfg文件
                 sourceFileList.Add(cfgPath);
@@ -160,12 +161,11 @@ namespace Holo.XR.Editor.UX
                 AssetDatabase.Refresh();
 
                 string zipFileName = Holo.XR.Config.EditorConfig.GetHotDataName() + "_v" + dataVersion;
-                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/"+ zipFileName + ".zip",null,null);
+                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/" + zipFileName + ".zip", null, null);
 
                 //写入版本信息
                 DataIO.WriteVersionFile(dataPath, zipFileName, false);
                 Debug.Log("导出成功!");
-
 #if UNITY_EDITOR_WIN
                 string localPath = dataPath.Replace('/', '\\');
                 System.Diagnostics.Process.Start("explorer.exe", localPath);
@@ -173,6 +173,7 @@ namespace Holo.XR.Editor.UX
             }
 
             GUILayout.EndVertical();
+
         }
 
         private bool AnySceneSelected()
@@ -208,7 +209,7 @@ namespace Holo.XR.Editor.UX
             string outputPath = parent + "/tmp";
             //根据输出路径创建AB包
             CreateAB(outputPath);
-            ExportUtils.Copy(outputPath + "/"+ Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
+            ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
                 parent + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName());
 
             //删除临时文件

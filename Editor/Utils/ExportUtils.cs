@@ -1,6 +1,6 @@
 
-#if HYBIRDCLR_ENABLED
 using Holo.HUR;
+#if HYBIRDCLR_ENABLED
 using HybridCLR.Editor;
 using HybridCLR.Editor.Commands;
 #endif
