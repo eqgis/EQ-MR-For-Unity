@@ -14,10 +14,5 @@ namespace Holo.Data
         /// 文件清单
         /// </summary>
         public List<string> FileList { get; set; }
-
-        public SceneEntity() { 
-            
-        }
-
     }
 }

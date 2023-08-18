@@ -123,6 +123,38 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &958115796
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 958115797}
+  m_Layer: 0
+  m_Name: Holo XR World
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &958115797
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958115796}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1963156324}
+  - {fileID: 1225188477}
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &964331059
 GameObject:
   m_ObjectHideFlags: 0
@@ -299,7 +331,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!1 &1028458186
+--- !u!1 &1225188476
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -307,40 +339,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1028458187}
-  m_Layer: 0
-  m_Name: Holo XR World
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1028458187
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1028458186}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 1923762173}
-  - {fileID: 1355204757}
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1355204756
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1355204757}
-  - component: {fileID: 1355204758}
+  - component: {fileID: 1225188477}
+  - component: {fileID: 1225188478}
   m_Layer: 0
   m_Name: DllLoader
   m_TagString: DllLoader
@@ -348,30 +348,30 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1355204757
+--- !u!4 &1225188477
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1355204756}
+  m_GameObject: {fileID: 1225188476}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1028458187}
+  m_Father: {fileID: 958115797}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1355204758
+--- !u!114 &1225188478
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1355204756}
+  m_GameObject: {fileID: 1225188476}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea8fa230d1cf57a468a562dd0021432f, type: 3}
+  m_Script: {fileID: 11500000, guid: ef19514bd28b726479b638da3bc7c9d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   autoReadData: 0
@@ -380,7 +380,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   assetsBundleNameList:
-  - hur
+  - hur.bin
   hotUpdateAssemblyNameList:
   - HotUpdate
   patchAOT_Assemblies: []
@@ -410,16 +410,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1645912990}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 170827946b118cd4db17451ad82a99ad, type: 3}
+  m_Script: {fileID: 11500000, guid: 6a9d37075d87ef24a85fcee74276143f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  url: http://file.eqgis.cn/file/tmp
-  webVersionFileName: version.txt
+  url: http://file.eqgis.cn/file/tmp/
   autoDownload: 1
   updateDataCompleted:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1355204758}
+      - m_Target: {fileID: 1225188478}
         m_TargetAssemblyTypeName: Holo.HUR.DllLoader, Assembly-CSharp
         m_MethodName: StartReadData
         m_Mode: 1
@@ -471,7 +470,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1841706916}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a2a62fcd3c643d43a25f110da51a02b, type: 3}
+  m_Script: {fileID: 11500000, guid: da8a10bfff1f9604a9b026981cc619d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   fontSize: 24
@@ -489,7 +488,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1923762172
+--- !u!1 &1963156323
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -497,7 +496,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1923762173}
+  - component: {fileID: 1963156324}
   m_Layer: 0
   m_Name: SceneNode
   m_TagString: SceneNode
@@ -505,17 +504,17 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1923762173
+--- !u!4 &1963156324
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1923762172}
+  m_GameObject: {fileID: 1963156323}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1028458187}
+  m_Father: {fileID: 958115797}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

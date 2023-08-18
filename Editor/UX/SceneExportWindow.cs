@@ -6,6 +6,8 @@ using Holo.XR.Editor.Utils;
 using Holo.XR.Utils;
 using Holo.Data;
 using LitJson;
+using System.Text;
+using Holo.HUR;
 
 namespace Holo.XR.Editor.UX
 {
@@ -16,7 +18,7 @@ namespace Holo.XR.Editor.UX
         private string[] sceneNames;
         private int mainSceneIndex = -1; // Index of the main scene
 
-        private string dataVersion = "1";
+        private string dataVersion; 
 
         private void OnEnable()
         {
@@ -32,6 +34,11 @@ namespace Holo.XR.Editor.UX
 
         private void OnGUI()
         {
+            //数据包输出路径
+            string dataPath = Directory.GetParent(Application.dataPath).ToString() + "/HoloData";
+
+            dataVersion = DataIO.ReadNewVersion(dataPath);
+
             GUILayout.Space(10);
             GUILayout.Label("打包下列所有场景:", EditorStyles.boldLabel);
             GUILayout.Space(5);
@@ -89,11 +96,27 @@ namespace Holo.XR.Editor.UX
                     return;
                 }
 
+                //输出路径
+                string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
+
+                if (Directory.Exists(outPutPath))
+                {
+                    // 删除所有文件
+                    foreach (string file in Directory.GetFiles(outPutPath))
+                    {
+                        File.Delete(file);
+                    }
+
+                    // 递归删除所有子文件夹和它们的内容
+                    foreach (string directory in Directory.GetDirectories(outPutPath))
+                    {
+                        Directory.Delete(directory, true);
+                    }
+                }
+
                 //1、打包热更DLL（包含环境检测，因此优先执行）
                 ExportUtils.ExecExport();
 
-                //输出路径
-                string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
                 //2、创建静态资源ab包
                 CreateAssetBundle(outPutPath);
 
@@ -126,23 +149,22 @@ namespace Holo.XR.Editor.UX
                 }
 
                 //记录文件清单 2023年8月17日21:46:00
-                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity),System.Text.Encoding.UTF8);
+                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity),new UTF8Encoding(false));
 
                 //输出包添加cfg文件
                 sourceFileList.Add(cfgPath);
 
-                //数据包输出路径
-                string dataPath = Directory.GetParent(Application.dataPath).ToString() + "/HoloData";
                 Directory.CreateDirectory(dataPath);
 
                 //刷新数据库，会自动更新meta文件
                 AssetDatabase.Refresh();
 
-                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/"+Holo.XR.Config.EditorConfig.GetHotDataName()+"_v"+dataVersion+".zip",null,null);
+                string zipFileName = Holo.XR.Config.EditorConfig.GetHotDataName() + "_v" + dataVersion;
+                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/"+ zipFileName + ".zip",null,null);
 
-#if UNITY_EDITOR
+                //写入版本信息
+                DataIO.WriteVersionFile(dataPath, zipFileName, false);
                 Debug.Log("导出成功!");
-#endif
 
 #if UNITY_EDITOR_WIN
                 string localPath = dataPath.Replace('/', '\\');
@@ -232,7 +254,7 @@ namespace Holo.XR.Editor.UX
             BuildAssetBundleOptions.UncompressedAssetBundle：不压缩数据，包大，但是加载很快。
             BuildAssetBundleOptions.ChunkBaseCompression：使用LZ4算法压缩，压缩率没有LZMA高，但是加载资源不必整体解压。这种方法中规中矩，我认为比较常用。
              */
-            BuildPipeline.BuildAssetBundles(outputPath, assetBundleBuilds, BuildAssetBundleOptions.ChunkBasedCompression, target);
+            BuildPipeline.BuildAssetBundles(outputPath, assetBundleBuilds, BuildAssetBundleOptions.None, target);
 
             Debug.Log("Main Scene: " + sceneNames[mainSceneIndex]);
         }

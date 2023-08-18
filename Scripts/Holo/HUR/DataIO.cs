@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Reflection;
 
 namespace Holo.HUR
@@ -47,8 +48,82 @@ namespace Holo.HUR
         /// </summary>
         /// <param name="srcFilePath"></param>
         /// <param name="targetFilePath"></param>
-        public static void Copy(string srcFilePath, string targetFilePath) { 
+        public static void Copy(string srcFilePath, string targetFilePath) {
             DataUtils.Instance.Encrypt(srcFilePath, targetFilePath);
+        }
+
+        /// <summary>
+        /// 写入版本信息
+        /// </summary>
+        /// <param name="targetFilePath">输出文件夹路径</param>
+        /// <param name="dataVersionInfo">内容</param>
+        public static void WriteVersionFile(string targetFilePath,string dataVersionInfo,bool overrideFile)
+        {
+            string filePath = targetFilePath + "/" + XR.Config.HoloConfig.versionFileName;
+            //判断文件是否存在
+            if (File.Exists(filePath))
+            {
+                if(overrideFile)
+                {
+                    File.Delete(filePath);
+                    //在本地路径写入当前数据版本信息
+                    File.WriteAllText(filePath, "###Data Version###\n" + dataVersionInfo);
+                }
+                else
+                {
+                    File.AppendAllText(filePath, "\n" + dataVersionInfo);
+                }
+            }
+            else
+            {
+                //在本地路径写入当前数据版本信息
+                File.WriteAllText(filePath, "###Data Version###\n" + dataVersionInfo);
+            }
+        }
+
+
+        /// <summary>
+        /// 读取新建的版本号
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public static string ReadNewVersion(string folderPath)
+        {
+            string filePath = folderPath + "/" + XR.Config.HoloConfig.versionFileName;
+            if (!File.Exists(filePath))
+            {
+                return "1";
+            }
+
+            //版本内容
+            string versionContent = File.ReadAllText(filePath);
+
+            string[] versionList = versionContent.Split('\n');
+            float maxVersion = 0;
+            foreach (string item in versionList)
+            {
+                string fileFullName = item.Trim();
+                string content = Path.GetFileNameWithoutExtension(fileFullName); // 去除空格和换行符
+
+                //“#”开头则跳过该行
+                if (!content.StartsWith("#"))
+                {
+                    string[] parts = content.Split(new string[] { "_v" }, StringSplitOptions.None);
+
+                    if (parts.Length == 2)
+                    {
+                        string version = parts[1];
+                        float versionValue = float.Parse(version);
+                        if (maxVersion < versionValue)
+                        {
+                            //记录最大值
+                            maxVersion = versionValue;
+                        }
+                    }
+                }
+            }
+
+            return (maxVersion + 1).ToString();
         }
 
     }

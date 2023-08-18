@@ -1,3 +1,4 @@
+using Holo.HUR;
 using Holo.XR.Android;
 using Holo.XR.Utils;
 using LitJson;
@@ -18,9 +19,6 @@ namespace Holo.Data
     {
         [Header("服务器:数据路径")]
         public string url;
-
-        [Header("服务器：数据版本文件")]
-        public string webVersionFileName = "version.txt";
 
         [Header("自动下载最新数据")]
         public bool autoDownload = true;
@@ -43,7 +41,7 @@ namespace Holo.Data
 
         private void Start()
         {
-            url.TrimEnd('/');
+            url = url.TrimEnd('/');
 
             if (autoDownload)
             {
@@ -70,12 +68,21 @@ namespace Holo.Data
         private IEnumerator CheckDataVersion()
         {
             //逻辑：获取服务器的最新版本信息，与本地的版本信息比对
-            string baseUrl = url + "/" + webVersionFileName;
+            string baseUrl = url + "/" + XR.Config.HoloConfig.versionFileName;
+
+#if UNITY_EDITOR
+            Debug.Log("版本文件路径:" + baseUrl);
+            Debug.Log("本地文件路径:" + saveFolderPath);
+#endif
             using (UnityWebRequest webRequest = UnityWebRequest.Get(baseUrl))
             {
                 yield return webRequest.SendWebRequest();
 
+#if UNITY_2020_3_OR_NEWER
                 if (webRequest.result != UnityWebRequest.Result.Success)
+#else
+                if (!(webRequest.isHttpError || webRequest.isNetworkError))
+#endif
                 {
 #if DEBUG
                     if (Application.platform == RuntimePlatform.Android)
@@ -147,7 +154,7 @@ namespace Holo.Data
             if (!Directory.Exists(saveFolderPath)) { return false; }
 
             //从数据解压路径读取版本文件
-            string localVersionFilePath = saveFolderPath + webVersionFileName;
+            string localVersionFilePath = saveFolderPath + XR.Config.HoloConfig.versionFileName;
             //判断文件是否存在
             if (!File.Exists(localVersionFilePath))
             {
@@ -174,15 +181,15 @@ namespace Holo.Data
                     {
                         string version = parts[1];
                         float versionValue = float.Parse(version);
-                        if (maxVersion >= versionValue)
+                        if (maxVersion > versionValue)
                         {
-                            //存在版本记录，>= web数据版本，则不更新
-                            return true;
+                            //服务器版本大于本地版本，则需要更新
+                            return false;
                         }
                     }
                 }
             }
-            return false;
+            return true;
         }
 
 
@@ -210,7 +217,11 @@ namespace Holo.Data
                 {
                     yield return webRequest.SendWebRequest();
 
+#if UNITY_2020_3_OR_NEWER
                     if (webRequest.result != UnityWebRequest.Result.Success)
+#else
+                    if (!(webRequest.isHttpError || webRequest.isNetworkError))
+#endif
                     {
 #if DEBUG
                         if (Application.platform == RuntimePlatform.Android)
@@ -218,8 +229,8 @@ namespace Holo.Data
                             AndroidUtils.Toast("数据清单获取失败—请检查网络");
                         }
 #endif
-                        EqLog.e("DataDownLoader", "Error downloading data: " + webRequest.error);
                         Debug.LogWarning("数据清单获取失败—请检查网络");
+                        EqLog.e("DataDownLoader", "Error downloading data: " + webRequest.error);
                     }
                     else
                     {
@@ -227,7 +238,7 @@ namespace Holo.Data
                         {
                             Directory.CreateDirectory(saveFolderPath);
                         }
-                        //数据保存路径file/data/scene.cfg
+                        //数据保存路径file/data/scene.txt
                         // 保存下载的数据到本地文件
                         byte[] data = webRequest.downloadHandler.data;
                         string sceneCfg = Encoding.UTF8.GetString(data);
@@ -244,30 +255,28 @@ namespace Holo.Data
                             using (UnityWebRequest request = UnityWebRequest.Get(downloadFile))
                             {
                                 yield return request.SendWebRequest();
-                                if (webRequest.result == UnityWebRequest.Result.Success)
+#if UNITY_2020_3_OR_NEWER
+                                if (request.result == UnityWebRequest.Result.Success)
+#else
+                                if (!(request.isHttpError || request.isNetworkError))
+#endif
                                 {
-                                    File.WriteAllBytes(saveFolderPath + file, webRequest.downloadHandler.data);
+                                    File.WriteAllBytes(saveFolderPath + file, request.downloadHandler.data);
                                 }
-                                else {
+                                else 
+                                {
                                     Debug.LogWarning(file + "not found.");
                                 }
                             }
-
-                            //从数据解压路径读取版本文件
-                            string localVersionFilePath = saveFolderPath + webVersionFileName;
-                            //判断文件是否存在
-                            if (File.Exists(localVersionFilePath))
-                            {
-                                File.Delete(localVersionFilePath);
-                            }
-                            //在本地路径写入当前数据版本信息
-                            File.WriteAllText(localVersionFilePath, "###Data Version###\n" + lastestDataFolderName);
-
-                            Debug.Log("数据下载完成！");
-
-                            //执行unity事件
-                            updateDataCompleted.Invoke();
+#if UNITY_EDITOR
+                            Debug.Log("数据"+ file +"下载完成！");
+#endif
                         }
+
+                        //写入版本文件
+                        DataIO.WriteVersionFile(saveFolderPath, lastestDataFolderName , true);
+                        //执行unity事件
+                        updateDataCompleted.Invoke();
                     }
                 }
             }

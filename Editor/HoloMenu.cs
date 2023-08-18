@@ -107,11 +107,6 @@ namespace Holo.XR.Editor
             HURComponentCreator.ImportDllLoader();
         }
 
-        [MenuItem("Holo-XR/HotUpdate/BuildBundle-Android", false, 401)]
-        public static void BuildBundle_Android()
-        {
-            HURComponentCreator.ExportDllAndAssetsBundle();
-        }
 
 
         [MenuItem("Holo-XR/HotUpdate/Import HybridCLR", false, 301)]
@@ -130,11 +125,39 @@ namespace Holo.XR.Editor
         }
 
         [MenuItem("Holo-XR/HotUpdate/HybridCLR Settings...", priority = 303)]
-        public static void OpenSettings() => SettingsService.OpenProjectSettings("Project/HybridCLR Settings");
+        private static void OpenSettings() => SettingsService.OpenProjectSettings("Project/HybridCLR Settings");
 
 #endif
 
-#endregion
+        [MenuItem("Holo-XR/CleanCache", false, 401)]
+        private static void CleanCache()
+        {
+            string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
+
+            if (System.IO.Directory.Exists(outPutPath))
+            {
+                // 删除所有文件
+                foreach (string file in System.IO.Directory.GetFiles(outPutPath))
+                {
+                    File.Delete(file);
+                }
+
+                // 递归删除所有子文件夹和它们的内容
+                foreach (string directory in System.IO.Directory.GetDirectories(outPutPath))
+                {
+                    System.IO.Directory.Delete(directory, true);
+                }
+            }
+            AssetDatabase.Refresh();
+            Debug.Log("已清空:" + outPutPath);
+        }
+
+        [MenuItem("Holo-XR/BuildBundle-Android", false, 402)]
+        private static void BuildBundle_Android()
+        {
+            HURComponentCreator.ExportDllAndAssetsBundle();
+        }
+        #endregion
 
         #region Other
         //在Unity菜单中创建一个菜单路径用于设置宏定义

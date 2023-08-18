@@ -24,13 +24,16 @@ namespace Holo.XR.Config
         public static string hotUpdateDataName { get; } = "HoloData";
 
         //热更时AB包名
-        public static string hotUpdateAbName { get; } = "hur";
+        public static string hotUpdateAbName { get; } = "hur.bin";
 
         //热更数据相对文件夹
         public static string hotUpdateDataFolder { get; } = "/data/";
 
         //热更主场景配置文件
         public static string sceneConfig { get; } = "scene.txt";
+        
+        //热更数据版本文件
+        public static string versionFileName { get; } = "version.txt";
         #endregion
     }
 
