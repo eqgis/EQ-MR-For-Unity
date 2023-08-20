@@ -25,6 +25,7 @@ namespace Holo.XR.Config
 
         //热更时AB包名
         public static string hotUpdateAbName { get; } = "hur.bin";
+        public static string preAssestName { get; } = "pre.bin";
 
         //热更数据相对文件夹
         public static string hotUpdateDataFolder { get; } = "/data/";
@@ -68,6 +69,10 @@ namespace Holo.XR.Config
         public static string GetHotUpdateAbName()
         {
             return HoloConfig.hotUpdateAbName;
+        }
+        public static string GetPreAssestName()
+        {
+            return HoloConfig.preAssestName;
         }
 
         /// <summary>

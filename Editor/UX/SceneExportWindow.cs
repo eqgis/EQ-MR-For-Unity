@@ -8,6 +8,8 @@ using Holo.Data;
 using LitJson;
 using System.Text;
 using Holo.HUR;
+using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
 
 namespace Holo.XR.Editor.UX
 {
@@ -209,14 +211,18 @@ namespace Holo.XR.Editor.UX
             string outputPath = parent + "/tmp";
             //根据输出路径创建AB包
             CreateAB(outputPath);
+            //拷贝两个，一个
             ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
                 parent + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName());
+
+            ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName(),
+                parent + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName());
 
             //删除临时文件
             string[] files = Directory.GetFiles(outputPath);
             foreach (string file in files)
             {
-                File.Delete(file);
+                //File.Delete(file);
             }
         }
 
@@ -231,6 +237,8 @@ namespace Holo.XR.Editor.UX
                 Directory.CreateDirectory(outputPath);
             }
 
+            HashSet<Object> allDependencies = new HashSet<Object>();
+
             // Collect scenes to build into the AssetBundle
             List<string> scenesToBuild = new List<string>();
 
@@ -241,14 +249,40 @@ namespace Holo.XR.Editor.UX
                     //Assets/Holo/Demo/04_场景热更新/New Scene.unity
                     string path = EditorBuildSettings.scenes[i].path;
                     scenesToBuild.Add(path);
+
+                    EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+                    Scene scene = SceneManager.GetSceneByPath(path);
+                    // 获取当前场景中的所有对象
+                    GameObject[] rootObjects = scene.GetRootGameObjects();
+
+                    foreach (GameObject rootObject in rootObjects)
+                    {
+                        CollectDependenciesRecursive(rootObject, allDependencies);
+                    }
+                }
+            }
+
+            //资产路径
+            List<string> assetPaths = new List<string>();
+
+            foreach (Object dependency in allDependencies)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(dependency);
+                // 排除脚本文件，仅要Assests目录下内容
+                if (!string.IsNullOrEmpty(assetPath) && !assetPath.EndsWith(".cs") && assetPath.StartsWith("Assets"))
+                {
+                    assetPaths.Add(assetPath);
                 }
             }
 
             BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
             // Build the AssetBundle
-            AssetBundleBuild[] assetBundleBuilds = new AssetBundleBuild[1];
-            assetBundleBuilds[0].assetBundleName = Config.EditorConfig.GetHotUpdateAbName();
-            assetBundleBuilds[0].assetNames = scenesToBuild.ToArray();
+            AssetBundleBuild[] assetBundleBuilds = new AssetBundleBuild[2];
+            assetBundleBuilds[0].assetBundleName = Config.EditorConfig.GetPreAssestName();
+            assetBundleBuilds[0].assetNames = assetPaths.ToArray();
+            assetBundleBuilds[1].assetBundleName = Config.EditorConfig.GetHotUpdateAbName();
+            assetBundleBuilds[1].assetNames = scenesToBuild.ToArray();
+            //assetBundleBuilds[0].assetNames = assetPaths.ToArray();
 
             /*
             BuildAssetBundleOptions.None：默认构建AssetBundle的方式。使用LZMA算法压缩，此算法压缩包小，但是加载时间长，而且使用之前必须要整体解压。解压以后，这个包又会使用LZ4算法重新压缩，这样这种包就不要对其整体解压了。（也就是第一次解压很慢，之后就变快了。
@@ -258,6 +292,32 @@ namespace Holo.XR.Editor.UX
             BuildPipeline.BuildAssetBundles(outputPath, assetBundleBuilds, BuildAssetBundleOptions.None, target);
 
             Debug.Log("Main Scene: " + sceneNames[mainSceneIndex]);
+        }
+
+
+        private static void CollectDependenciesRecursive(GameObject gameObject, HashSet<Object> collectedDependencies)
+        {
+            // ... 同样的递归收集依赖的代码 ...
+            Component[] components = gameObject.GetComponents<Component>();
+
+            foreach (Component component in components)
+            {
+                SerializedObject so = new SerializedObject(component);
+                SerializedProperty sp = so.GetIterator();
+
+                while (sp.NextVisible(true))
+                {
+                    if (sp.propertyType == SerializedPropertyType.ObjectReference && sp.objectReferenceValue != null)
+                    {
+                        collectedDependencies.Add(sp.objectReferenceValue);
+                    }
+                }
+            }
+
+            foreach (Transform childTransform in gameObject.transform)
+            {
+                CollectDependenciesRecursive(childTransform.gameObject, collectedDependencies);
+            }
         }
 
     }

@@ -105,6 +105,12 @@ namespace Holo.HUR
         private IEnumerator LoadAssets(Action onDownloadComplete)
         {
             int max = patchAOT_Assemblies.Count + hotUpdateAssemblyNameList.Count + assetsBundleNameList.Count;
+
+            //非编辑器情况下，要加载unity内置资源
+#if !UNITY_EDITOR
+            loadInnerResource();
+#endif
+
             //注意：加载顺序，AOTMetaAssemblt->热更dll->AB包
             int count = 0;
             foreach (var item in patchAOT_Assemblies)
@@ -132,6 +138,7 @@ namespace Holo.HUR
                 ReadDataFromPersistent(item + ".dll.bytes", AssetsType.HOT_UPDATE_ASSEMBLY);
             }
 
+
             foreach (var item in assetsBundleNameList)
             {
                 count++;
@@ -154,6 +161,27 @@ namespace Holo.HUR
             onDownloadComplete();
 
             yield return null;
+        }
+
+        /// <summary>
+        /// 加载Unity内置资源
+        /// </summary>
+        private void loadInnerResource()
+        {
+            try
+            {
+                //AssetDatabase.LoadAllAssetsAtPath("Library/unity default resources");
+                //AssetDatabase.LoadAllAssetsAtPath("Resources/unity_builtin_extra");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("loadInnerResource: " + e.Message);
+#if DEBUG_LOG
+                EqLog.w("DllLoader", "loadInnerResource: " + e.Message);
+#endif
+            }
+            //AssetDatabase.LoadAllAssetsAtPath("Library/unity editor resources");
+
         }
 
         private void ReadDataFromPersistent(string asset,AssetsType type)
