@@ -1,4 +1,8 @@
+using Holo.HUR;
 using Holo.XR.Editor.UX;
+#if HYBIRDCLR_ENABLED
+using HybridCLR.Editor;
+#endif
 using UnityEditor;
 using UnityEngine;
 
@@ -21,13 +25,40 @@ namespace Holo.XR.Editor.Utils
             GameObject dllLoader = GameObject.FindWithTag(tag);
             if (dllLoader != null)
             {
-                PopWindow.Show("对象已存在\n请查看\"" + dllLoader.name + "\"子节点",200,80);
+                PopWindow.Show("对象已存在\n请查看\"" + dllLoader.name + "\"节点", 200, 80);
                 return;
             }
             GameObject[] obj = GetHoloRootNode();
             GameObject mapObj = obj[0];
 
-            dllLoader = CreateObject("Prefabs/HUR/DllLoader");
+            //dllLoader = CreateObject("Prefabs/HUR/DllLoader");
+            dllLoader = new GameObject(DllLoaderTag);
+            //添加“DllLoader”组件
+            dllLoader.AddComponent<DllLoader>();
+            //给定默认的热更配置
+            DllLoader loader = dllLoader.GetComponent<DllLoader>();
+
+            //同步资源列表
+
+            //同步热更DLL列表
+            foreach (var item in SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)
+            {
+                if (item.EndsWith(".dll"))
+                {
+                    loader.hotUpdateAssemblyNameList.Add(item.Substring(0, item.Length - 4));
+                }
+                else
+                {
+                    loader.hotUpdateAssemblyNameList.Add(item);
+                }
+            }
+
+            //同步AOT 元数据列表
+            foreach (var item in SettingsUtil.AOTAssemblyNames)
+            {
+                loader.patchAOT_Assemblies.Add(item);
+            }
+
             dllLoader.transform.parent = mapObj.transform;
             dllLoader.tag = tag;
             PopWindow.Show("已添加至\"" + mapObj.name + "\"", 200, 80);

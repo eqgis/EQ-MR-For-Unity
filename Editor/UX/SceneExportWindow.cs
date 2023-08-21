@@ -4,6 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using Holo.XR.Editor.Utils;
 using Holo.XR.Utils;
+using Holo.Data;
+using LitJson;
+using System.Text;
+using Holo.HUR;
+using UnityEngine.SceneManagement;
+using UnityEditor.SceneManagement;
+using System.Linq;
 
 namespace Holo.XR.Editor.UX
 {
@@ -14,7 +21,8 @@ namespace Holo.XR.Editor.UX
         private string[] sceneNames;
         private int mainSceneIndex = -1; // Index of the main scene
 
-        private string dataVersion = "1";
+        private string dataVersion;
+        private string dataPath;
 
         private void OnEnable()
         {
@@ -26,22 +34,31 @@ namespace Holo.XR.Editor.UX
             {
                 sceneNames[i] = System.IO.Path.GetFileNameWithoutExtension(EditorBuildSettings.scenes[i].path);
             }
+
+            //数据包输出路径
+            dataPath = Directory.GetParent(Application.dataPath).ToString() + "/HoloData";
+
+            dataVersion = DataIO.ReadNewVersion(dataPath);
         }
 
         private void OnGUI()
         {
             GUILayout.Space(10);
-            GUILayout.Label("选择场景导出:", EditorStyles.boldLabel);
+            GUILayout.Label("打包下列所有场景:", EditorStyles.boldLabel);
             GUILayout.Space(5);
 
+            EditorGUILayout.BeginVertical("box");
             for (int i = 0; i < sceneSelections.Length; i++)
             {
-                sceneSelections[i] = GUILayout.Toggle(sceneSelections[i], sceneNames[i]);
+                //sceneSelections[i] = GUILayout.Toggle(sceneSelections[i], sceneNames[i]);
+                sceneSelections[i] = true;
+                GUILayout.Label((i + 1) + "." + sceneNames[i], EditorStyles.miniBoldLabel);
             }
+            EditorGUILayout.EndVertical();
 
 
             GUILayout.Space(5);
-            GUILayout.Label("注:若没有场景列出\n    请先在File->Build Settins中添加场景");
+            GUILayout.Label("注:在File->Build Settins中修改场景");
             GUILayout.Space(10);
 
             GUILayout.Label("指定场景作为入口:", EditorStyles.boldLabel);
@@ -64,8 +81,7 @@ namespace Holo.XR.Editor.UX
             GUILayout.Space(10);
 
 
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace(); // 创建一个伸缩空间，将按钮推到水平中心
+            GUILayout.BeginVertical();
 
             if (GUILayout.Button("导出", GUILayout.Width(100)))
             {
@@ -73,7 +89,7 @@ namespace Holo.XR.Editor.UX
                 if (!float.TryParse(dataVersion, out float result))
                 {
                     Debug.LogError("\"数据版本\"设置有误，请输入一个合法数字" + result);
-                    PopWindow.Show("\"数据版本\"设置有误\n请输入一个合法数字",120,80);
+                    PopWindow.Show("\"数据版本\"设置有误\n请输入一个合法数字", 120, 80);
                     return;
                 }
 
@@ -84,14 +100,37 @@ namespace Holo.XR.Editor.UX
                     return;
                 }
 
-                //打包热更DLL（包含环境检测，因此优先执行）
-                ExportUtils.ExecExport();
-
-
                 //输出路径
                 string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
-                //创建静态资源ab包
+
+                if (Directory.Exists(outPutPath))
+                {
+                    // 删除所有文件
+                    foreach (string file in Directory.GetFiles(outPutPath))
+                    {
+                        File.Delete(file);
+                    }
+
+                    // 递归删除所有子文件夹和它们的内容
+                    foreach (string directory in Directory.GetDirectories(outPutPath))
+                    {
+                        Directory.Delete(directory, true);
+                    }
+                }
+
+                //1、打包热更DLL（包含环境检测，因此优先执行）
+                ExportUtils.ExecExport();
+
+                //2、创建静态资源ab包
                 CreateAssetBundle(outPutPath);
+
+                //3、创建场景配置文件路径
+                string cfgPath = outPutPath + "/" + Config.EditorConfig.GetSceneConfigName();
+                //构建场景数据并写入
+                SceneEntity sceneEntity = new SceneEntity();
+                //记录入口场景
+                sceneEntity.MainScene = sceneNames[mainSceneIndex];
+                sceneEntity.FileList = new List<string>();
 
                 //要打包的文件路径
                 string[] files = Directory.GetFiles(outPutPath);
@@ -102,32 +141,42 @@ namespace Holo.XR.Editor.UX
                 {
                     if (!item.EndsWith(".meta"))
                     {
-                        sourceFileList.Add(item);
+                        string filePath = item.Replace("\\", "/");
+                        sourceFileList.Add(filePath);
+
+                        string fileName = Path.GetFileName(filePath);
+                        if (!fileName.Equals(Config.EditorConfig.GetSceneConfigName()))
+                        {
+                            sceneEntity.FileList.Add(fileName);
+                        }
                     }
                 }
 
-                //数据包输出路径
-                string dataPath = Directory.GetParent(Application.dataPath).ToString() + "/HoloData";
-                Directory.CreateDirectory(dataPath);
+                //记录文件清单 2023年8月17日21:46:00
+                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity), new UTF8Encoding(false));
 
-                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/"+Holo.XR.Config.EditorConfig.GetHotDataName()+"_v"+dataVersion+".zip","ikkyu",null);
+                //输出包添加cfg文件
+                sourceFileList.Add(cfgPath);
+
+                Directory.CreateDirectory(dataPath);
 
                 //刷新数据库，会自动更新meta文件
                 AssetDatabase.Refresh();
-                
 
-#if UNITY_EDITOR
+                string zipFileName = Holo.XR.Config.EditorConfig.GetHotDataName() + "_v" + dataVersion;
+                ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/" + zipFileName + ".zip", null, null);
+
+                //写入版本信息
+                DataIO.WriteVersionFile(dataPath, zipFileName, false);
                 Debug.Log("导出成功!");
-#endif
-
 #if UNITY_EDITOR_WIN
                 string localPath = dataPath.Replace('/', '\\');
                 System.Diagnostics.Process.Start("explorer.exe", localPath);
 #endif
             }
 
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+
         }
 
         private bool AnySceneSelected()
@@ -163,8 +212,12 @@ namespace Holo.XR.Editor.UX
             string outputPath = parent + "/tmp";
             //根据输出路径创建AB包
             CreateAB(outputPath);
-            ExportUtils.Copy(outputPath + "/"+ Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
+            //拷贝两个，一个
+            ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
                 parent + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName());
+
+            ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName(),
+                parent + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName());
 
             //删除临时文件
             string[] files = Directory.GetFiles(outputPath);
@@ -185,6 +238,9 @@ namespace Holo.XR.Editor.UX
                 Directory.CreateDirectory(outputPath);
             }
 
+            //依赖项
+            HashSet<string> allDependencies = new HashSet<string>();
+
             // Collect scenes to build into the AssetBundle
             List<string> scenesToBuild = new List<string>();
 
@@ -195,25 +251,41 @@ namespace Holo.XR.Editor.UX
                     //Assets/Holo/Demo/04_场景热更新/New Scene.unity
                     string path = EditorBuildSettings.scenes[i].path;
                     scenesToBuild.Add(path);
+
+                    //获取场景中所有依赖项
+                    string[] dependencies = AssetDatabase.GetDependencies(path, true);
+                    //排除cs脚本和场景路径，通过HashSet去重
+                    foreach (string dep in dependencies)
+                    {
+                        if (dep.EndsWith(".cs") || dep.EndsWith(".unity"))
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            allDependencies.Add(dep);
+                        }
+                    }
                 }
             }
 
             BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
             // Build the AssetBundle
-            AssetBundleBuild[] assetBundleBuilds = new AssetBundleBuild[1];
-            assetBundleBuilds[0].assetBundleName = Holo.XR.Config.EditorConfig.GetHotUpdateAbName();
-            assetBundleBuilds[0].assetNames = scenesToBuild.ToArray();
+            AssetBundleBuild[] assetBundleBuilds = new AssetBundleBuild[2];
+            assetBundleBuilds[0].assetBundleName = Config.EditorConfig.GetPreAssestName();
+            assetBundleBuilds[0].assetNames = allDependencies.ToArray();
+            assetBundleBuilds[1].assetBundleName = Config.EditorConfig.GetHotUpdateAbName();
+            assetBundleBuilds[1].assetNames = scenesToBuild.ToArray();
 
             /*
             BuildAssetBundleOptions.None：默认构建AssetBundle的方式。使用LZMA算法压缩，此算法压缩包小，但是加载时间长，而且使用之前必须要整体解压。解压以后，这个包又会使用LZ4算法重新压缩，这样这种包就不要对其整体解压了。（也就是第一次解压很慢，之后就变快了。
             BuildAssetBundleOptions.UncompressedAssetBundle：不压缩数据，包大，但是加载很快。
             BuildAssetBundleOptions.ChunkBaseCompression：使用LZ4算法压缩，压缩率没有LZMA高，但是加载资源不必整体解压。这种方法中规中矩，我认为比较常用。
              */
-            BuildPipeline.BuildAssetBundles(outputPath, assetBundleBuilds, BuildAssetBundleOptions.ChunkBasedCompression, target);
+            BuildPipeline.BuildAssetBundles(outputPath, assetBundleBuilds, BuildAssetBundleOptions.None, target);
 
             Debug.Log("Main Scene: " + sceneNames[mainSceneIndex]);
         }
-
     }
 
 }

@@ -218,7 +218,11 @@ namespace Holo.XR.Core
             {
                 yield return www.SendWebRequest();
 
+#if UNITY_2020_3_OR_NEWER
                 if (www.result == UnityWebRequest.Result.Success)
+#else
+                if(!(www.isHttpError || www.isNetworkError))
+#endif
                 {
                     byte[] data = www.downloadHandler.data;
 

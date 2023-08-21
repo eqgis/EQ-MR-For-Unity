@@ -30,14 +30,20 @@ namespace Holo.HUR
     /// </summary>
     public class DllLoader : MonoBehaviour
     {
-        [Header("资源加载完成后，自动进入主场景")]
+        [Header("组件启动时，自动读取热更数据")]
+        public bool autoReadData = false;
+
+        [Header("资源加载完成后，自动加载入口场景")]
         public bool autoEnter = true;
 
         [Header("资源加载完成后执行事件")]
         public UnityEvent loadComplete;
 
-        [Header("热更新 AssetsBundle")]
-        public List<string> assetsBundleNameList = new List<string>();
+        //[Header("热更新 AssetsBundle")]
+        private List<string> assetsBundleNameList = new List<string>() {
+            /*场景依赖的资源*/XR.Config.EditorConfig.GetPreAssestName(),
+            /*场景输出的AB包名称*/XR.Config.EditorConfig.GetHotUpdateAbName()
+        };
 
         [Header("热更新 DLL")]
         public List<string> hotUpdateAssemblyNameList = new List<string>();
@@ -60,12 +66,20 @@ namespace Holo.HUR
 
         void Start()
         {
+            if (autoReadData)
+            {
+                StartReadData();
+            }
+        }
+
+        public void StartReadData()
+        {
             //读取配置文件中的主场景名称
             string cfgJsonPath = localFolderPath + XR.Config.HoloConfig.sceneConfig;
             if (!File.Exists(cfgJsonPath))
             {
 #if DEBUG
-                    AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
+                AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
 #endif
                 //默认入口为“Main”
                 this.hotUpdateMainSceneName = "Main";
@@ -94,6 +108,12 @@ namespace Holo.HUR
         private IEnumerator LoadAssets(Action onDownloadComplete)
         {
             int max = patchAOT_Assemblies.Count + hotUpdateAssemblyNameList.Count + assetsBundleNameList.Count;
+
+            //非编辑器情况下，要加载unity内置资源
+#if !UNITY_EDITOR
+            loadInnerResource();
+#endif
+
             //注意：加载顺序，AOTMetaAssemblt->热更dll->AB包
             int count = 0;
             foreach (var item in patchAOT_Assemblies)
@@ -121,6 +141,7 @@ namespace Holo.HUR
                 ReadDataFromPersistent(item + ".dll.bytes", AssetsType.HOT_UPDATE_ASSEMBLY);
             }
 
+
             foreach (var item in assetsBundleNameList)
             {
                 count++;
@@ -145,6 +166,27 @@ namespace Holo.HUR
             yield return null;
         }
 
+        /// <summary>
+        /// 加载Unity内置资源
+        /// </summary>
+        private void loadInnerResource()
+        {
+            try
+            {
+                //AssetDatabase.LoadAllAssetsAtPath("Library/unity default resources");
+                //AssetDatabase.LoadAllAssetsAtPath("Resources/unity_builtin_extra");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("loadInnerResource: " + e.Message);
+#if DEBUG_LOG
+                EqLog.w("DllLoader", "loadInnerResource: " + e.Message);
+#endif
+            }
+            //AssetDatabase.LoadAllAssetsAtPath("Library/unity editor resources");
+
+        }
+
         private void ReadDataFromPersistent(string asset,AssetsType type)
         {
 
@@ -153,7 +195,7 @@ namespace Holo.HUR
             if (!File.Exists(dllPath))
             {
 #if DEBUG_LOG
-                EqLog.w("DllLoader", "Caould not find " + asset);
+                EqLog.w("DllLoader", "Could not find " + asset);
 #endif
                 return;
             }
@@ -193,13 +235,15 @@ namespace Holo.HUR
         }
 
 
-        #endregion
+#endregion
 
 
 
         void OnLoadComplete()
         {
-
+#if DEBUG_LOG
+            Debug.Log("OnLoadComplete");
+#endif
             if (loadComplete != null)
             {
                 loadComplete.Invoke();

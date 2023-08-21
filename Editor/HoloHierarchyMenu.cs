@@ -7,7 +7,7 @@ namespace Holo.XR.Editor
 {
     public class CustomHierarchyMenu
     {
-
+#if ENGINE_XVISIO
         [MenuItem("GameObject/Holo XR/Camera", false, 11)]
         static void XvManager(MenuCommand menuCommand)
         {
@@ -42,6 +42,7 @@ namespace Holo.XR.Editor
             EditWindowJumpSceneController window = EditorWindow.GetWindowWithRect<EditWindowJumpSceneController>(windowRect, true, "输入目标场景名称");
             window.Show();
         }
+#endif
     }
 
 }

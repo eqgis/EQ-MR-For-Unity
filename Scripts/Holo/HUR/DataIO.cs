@@ -1,7 +1,6 @@
+using System;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using Unity;
+using System.Reflection;
 
 namespace Holo.HUR
 {
@@ -38,33 +37,135 @@ namespace Holo.HUR
         /// </summary>
         /// <param name="srcFilePath"></param>
         /// <returns></returns>
-        private static byte[] ReadFromPath(string srcFilePath)
+        public static byte[] ReadFromPath(string srcFilePath)
         {
             // 解密
-            using (Aes aesAlg = Aes.Create())
+            return DataUtils.Instance.Decrypt(srcFilePath);
+        }
+
+        /// <summary>
+        /// 拷贝文件
+        /// </summary>
+        /// <param name="srcFilePath"></param>
+        /// <param name="targetFilePath"></param>
+        public static void Copy(string srcFilePath, string targetFilePath) {
+            DataUtils.Instance.Encrypt(srcFilePath, targetFilePath);
+        }
+
+        /// <summary>
+        /// 写入版本信息
+        /// </summary>
+        /// <param name="targetFilePath">输出文件夹路径</param>
+        /// <param name="dataVersionInfo">内容</param>
+        public static void WriteVersionFile(string targetFilePath,string dataVersionInfo,bool overrideFile)
+        {
+            string filePath = targetFilePath + "/" + XR.Config.HoloConfig.versionFileName;
+            //判断文件是否存在
+            if (File.Exists(filePath))
             {
-                using (FileStream fsEncrypted = new FileStream(srcFilePath, FileMode.Open))
-                using (MemoryStream fs = new MemoryStream())
+                if(overrideFile)
                 {
-                    byte[] key2 = new byte[32];
-                    byte[] iv2 = new byte[16];
-                    fsEncrypted.Read(key2, 0, key2.Length);
-                    fsEncrypted.Read(iv2, 0, iv2.Length);
-                    using (ICryptoTransform decryptor = aesAlg.CreateDecryptor(key2, iv2))
-                    using (CryptoStream csDecrypt = new CryptoStream(fsEncrypted, decryptor, CryptoStreamMode.Read))
+                    File.Delete(filePath);
+                    //在本地路径写入当前数据版本信息
+                    File.WriteAllText(filePath, "###Data Version###\n" + dataVersionInfo);
+                }
+                else
+                {
+                    File.AppendAllText(filePath, "\n" + dataVersionInfo);
+                }
+            }
+            else
+            {
+                //在本地路径写入当前数据版本信息
+                File.WriteAllText(filePath, "###Data Version###\n" + dataVersionInfo);
+            }
+        }
+
+
+        /// <summary>
+        /// 读取新建的版本号
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public static string ReadNewVersion(string folderPath)
+        {
+            string filePath = folderPath + "/" + XR.Config.HoloConfig.versionFileName;
+            if (!File.Exists(filePath))
+            {
+                return "1";
+            }
+
+            //版本内容
+            string versionContent = File.ReadAllText(filePath);
+
+            string[] versionList = versionContent.Split('\n');
+            float maxVersion = 0;
+            foreach (string item in versionList)
+            {
+                string fileFullName = item.Trim();
+                string content = Path.GetFileNameWithoutExtension(fileFullName); // 去除空格和换行符
+
+                //“#”开头则跳过该行
+                if (!content.StartsWith("#"))
+                {
+                    string[] parts = content.Split(new string[] { "_v" }, StringSplitOptions.None);
+
+                    if (parts.Length == 2)
                     {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = csDecrypt.Read(buffer, 0, buffer.Length)) > 0)
+                        string version = parts[1];
+                        float versionValue = float.Parse(version);
+                        if (maxVersion < versionValue)
                         {
-                            fs.Write(buffer, 0, bytesRead);
+                            //记录最大值
+                            maxVersion = versionValue;
                         }
-                        return fs.ToArray();
                     }
                 }
             }
+
+            return (maxVersion + 1).ToString();
         }
+
     }
 
+    internal class DataUtils
+    {
+        private static readonly object lockObject = new object();
+        private MethodInfo encrypt;
+        private MethodInfo decrypt;
+        private static DataUtils instance = null;
+
+        private DataUtils()
+        {
+            Type type = Type.GetType("Holo.XR.Utils.EqAesUtils");
+            if (type != null)
+            {
+                encrypt = type.GetMethod("Encrypt", BindingFlags.NonPublic | BindingFlags.Static);
+                decrypt = type.GetMethod("Decrypt", BindingFlags.NonPublic | BindingFlags.Static);
+            }
+        }
+        public static DataUtils Instance {
+            get
+            {
+                lock (lockObject)
+                {
+                    if (instance == null)
+                    {
+                        instance = new DataUtils();
+                    }
+                    return instance;
+                }
+            }
+        }
+
+        public void Encrypt(string srcFilePath, string encryptedFilePath)
+        {
+            encrypt.Invoke(this, new object[] { srcFilePath, encryptedFilePath });
+        }
+
+        public byte[] Decrypt(string srcFilePath) { 
+            return (byte[])decrypt.Invoke(this, new object[] {srcFilePath});
+        }
+    }
 
 }

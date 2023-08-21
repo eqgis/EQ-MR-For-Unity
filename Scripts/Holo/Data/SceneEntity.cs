@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Holo.Data
 {
     public class SceneEntity
@@ -7,7 +9,10 @@ namespace Holo.Data
         /// <code>热更新时的入口场景</code>
         /// </summary>
         public string MainScene { get; set; }
-        public SceneEntity() { }
 
+        /// <summary>
+        /// 文件清单
+        /// </summary>
+        public List<string> FileList { get; set; }
     }
 }

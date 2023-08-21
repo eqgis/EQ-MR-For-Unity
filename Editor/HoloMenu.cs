@@ -13,57 +13,58 @@ namespace Holo.XR.Editor
 {
     public class HoloMenu : EditorUtility
     {
-        #region MenuItem
-        [MenuItem("Holo-XR/Build Bundle - B50R", false)]
-        static void BuildBundle()
-        {
-            string parentFolderPath = Application.streamingAssetsPath;
-            //string name = GetFormattedTimestamp();
-            // 获取当前场景路径
-            string scenePath = EditorSceneManager.GetActiveScene().path;
-            // 根据场景名生成AssetBundle的名字
-            string name = "scene_" + System.IO.Path.GetFileNameWithoutExtension(scenePath).ToLower();
+        #region Test
+        //        [MenuItem("Holo-XR/Build Bundle - B50R", false)]
+        //        static void BuildBundle()
+        //        {
+        //            string parentFolderPath = Application.streamingAssetsPath;
+        //            //string name = GetFormattedTimestamp();
+        //            // 获取当前场景路径
+        //            string scenePath = EditorSceneManager.GetActiveScene().path;
+        //            // 根据场景名生成AssetBundle的名字
+        //            string name = "scene_" + System.IO.Path.GetFileNameWithoutExtension(scenePath).ToLower();
 
-            string folderPath = parentFolderPath + "/" + name;
+        //            string folderPath = parentFolderPath + "/" + name;
 
-            if (!File.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
+        //            if (!File.Exists(folderPath))
+        //            {
+        //                Directory.CreateDirectory(folderPath);
+        //            }
 
-#if UNITY_ANDROID//安卓端
-            Debug.Log("安卓平台打包成功");
-            BuildPipeline.BuildAssetBundles(folderPath,
-            BuildAssetBundleOptions.ChunkBasedCompression,
-            BuildTarget.Android);
-#elif UNITY_IPHONE//IOS
-         Debug.Log("IOS平台打包成功");
-        BulidPipeline.BulidAssetBundles(folderPath,
-        BulidAssetBundleOptions.ChunkBasedCompression ,
-        BulidTarget.iOS);
-#elif UNITY_STANDALONE_WIN || UNITY_EDITOR//PC或则编辑器
-        Debug.Log("PC平台打包成功");
-        BuildPipeline.BuildAssetBundles(folderPath,
-        BuildAssetBundleOptions.ChunkBasedCompression ,
-        BuildTarget.StandaloneWindows);
-#endif
-            ////导出场景信息,注意：所挂载的C#脚本无法导出
-            //Scene activeScene = SceneManager.GetActiveScene();
-            //SceneInfoSaver.ExportSceneJson(activeScene, folderPath);
+        //#if UNITY_ANDROID//安卓端
+        //            Debug.Log("安卓平台打包成功");
+        //            BuildPipeline.BuildAssetBundles(folderPath,
+        //            BuildAssetBundleOptions.ChunkBasedCompression,
+        //            BuildTarget.Android);
+        //#elif UNITY_IPHONE//IOS
+        //         Debug.Log("IOS平台打包成功");
+        //        BulidPipeline.BulidAssetBundles(folderPath,
+        //        BulidAssetBundleOptions.ChunkBasedCompression ,
+        //        BulidTarget.iOS);
+        //#elif UNITY_STANDALONE_WIN || UNITY_EDITOR//PC或则编辑器
+        //        Debug.Log("PC平台打包成功");
+        //        BuildPipeline.BuildAssetBundles(folderPath,
+        //        BuildAssetBundleOptions.ChunkBasedCompression ,
+        //        BuildTarget.StandaloneWindows);
+        //#endif
+        //            ////导出场景信息,注意：所挂载的C#脚本无法导出
+        //            //Scene activeScene = SceneManager.GetActiveScene();
+        //            //SceneInfoSaver.ExportSceneJson(activeScene, folderPath);
 
-            //ZipWrapper.Zip(new string[] { folderPath }, folderPath + ".zip", null, null);
-            //EditorUtility.DisplayDialog("提示", "打包成功!\n场景名称:"+activeScene.name+"\n文件路径:\n" + folderPath + ".zip", "ok");
+        //            //ZipWrapper.Zip(new string[] { folderPath }, folderPath + ".zip", null, null);
+        //            //EditorUtility.DisplayDialog("提示", "打包成功!\n场景名称:"+activeScene.name+"\n文件路径:\n" + folderPath + ".zip", "ok");
 
-#if UNITY_EDITOR_WIN
-            string localPath = parentFolderPath.Replace('/', '\\');
-            System.Diagnostics.Process.Start("explorer.exe", localPath);
-#endif
-        }
+        //#if UNITY_EDITOR_WIN
+        //            string localPath = parentFolderPath.Replace('/', '\\');
+        //            System.Diagnostics.Process.Start("explorer.exe", localPath);
+        //#endif
+        //        }
         #endregion
 
 
-        #region Scene Config
-        [MenuItem("Holo-XR/Scene Config/Import MapLoader", false, 104)]
+        #region XVisio Config
+#if ENGINE_XVISIO
+        [MenuItem("Holo-XR/XVisio Config/Import MapLoader", false, 104)]
         static void ImportMapLoader()
         {
             // 创建自定义弹窗并设置尺寸
@@ -72,21 +73,29 @@ namespace Holo.XR.Editor
             window.Show();
         }
 
-        [MenuItem("Holo-XR/Scene Config/Import MapScanner", false, 105)]
+        [MenuItem("Holo-XR/XVisio Config/Import MapScanner", false, 105)]
         static void ImportMapScanner()
         {
             XvPrefabsCreator.ImportMapScanner(null, null);
         }
 
-        [MenuItem("Holo-XR/Scene Config/Import Default Config", false, 101)]
+        [MenuItem("Holo-XR/XVisio Config/Import Default Config", false, 101)]
         static void ImportDefaultConfig()
         {
             XvPrefabsCreator.ImportXvManager();
             XvPrefabsCreator.ImportGesture();
             XvPrefabsCreator.ImportXvThrowScene();
         }
+#endif
 
         #endregion
+
+        #region ARCore Config
+#if ENGINE_ARCORE
+
+#endif
+
+#endregion
 
 
         #region HotUpdate 
@@ -98,11 +107,6 @@ namespace Holo.XR.Editor
             HURComponentCreator.ImportDllLoader();
         }
 
-        [MenuItem("Holo-XR/HotUpdate/BuildBundle-Android", false, 401)]
-        public static void BuildBundle_Android()
-        {
-            HURComponentCreator.ExportDllAndAssetsBundle();
-        }
 
 
         [MenuItem("Holo-XR/HotUpdate/Import HybridCLR", false, 301)]
@@ -121,11 +125,39 @@ namespace Holo.XR.Editor
         }
 
         [MenuItem("Holo-XR/HotUpdate/HybridCLR Settings...", priority = 303)]
-        public static void OpenSettings() => SettingsService.OpenProjectSettings("Project/HybridCLR Settings");
+        private static void OpenSettings() => SettingsService.OpenProjectSettings("Project/HybridCLR Settings");
 
 #endif
 
-#endregion
+        [MenuItem("Holo-XR/CleanCache", false, 401)]
+        private static void CleanCache()
+        {
+            string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
+
+            if (System.IO.Directory.Exists(outPutPath))
+            {
+                // 删除所有文件
+                foreach (string file in System.IO.Directory.GetFiles(outPutPath))
+                {
+                    File.Delete(file);
+                }
+
+                // 递归删除所有子文件夹和它们的内容
+                foreach (string directory in System.IO.Directory.GetDirectories(outPutPath))
+                {
+                    System.IO.Directory.Delete(directory, true);
+                }
+            }
+            AssetDatabase.Refresh();
+            Debug.Log("已清空:" + outPutPath);
+        }
+
+        [MenuItem("Holo-XR/BuildBundle-Android", false, 402)]
+        private static void BuildBundle_Android()
+        {
+            HURComponentCreator.ExportDllAndAssetsBundle();
+        }
+        #endregion
 
         #region Other
         //在Unity菜单中创建一个菜单路径用于设置宏定义

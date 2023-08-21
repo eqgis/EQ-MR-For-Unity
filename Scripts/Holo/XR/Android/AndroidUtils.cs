@@ -11,6 +11,10 @@ namespace Holo.XR.Android
 
         private AndroidUtils()
         {
+            if (Application.platform != RuntimePlatform.Android)
+            {
+                return;
+            }
             unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
             toast = new AndroidJavaClass("android.widget.Toast");
