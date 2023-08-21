@@ -37,7 +37,8 @@ namespace Holo.XR.Editor.Utils
             dllLoader.AddComponent<DllLoader>();
             //给定默认的热更配置
             DllLoader loader = dllLoader.GetComponent<DllLoader>();
-            loader.assetsBundleNameList.Add(Holo.XR.Config.EditorConfig.GetHotUpdateAbName());
+
+            //同步资源列表
 
             //同步热更DLL列表
             foreach (var item in SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)

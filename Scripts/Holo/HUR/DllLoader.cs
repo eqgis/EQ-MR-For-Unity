@@ -39,8 +39,11 @@ namespace Holo.HUR
         [Header("资源加载完成后执行事件")]
         public UnityEvent loadComplete;
 
-        [Header("热更新 AssetsBundle")]
-        public List<string> assetsBundleNameList = new List<string>();
+        //[Header("热更新 AssetsBundle")]
+        private List<string> assetsBundleNameList = new List<string>() {
+            /*场景依赖的资源*/XR.Config.EditorConfig.GetPreAssestName(),
+            /*场景输出的AB包名称*/XR.Config.EditorConfig.GetHotUpdateAbName()
+        };
 
         [Header("热更新 DLL")]
         public List<string> hotUpdateAssemblyNameList = new List<string>();
