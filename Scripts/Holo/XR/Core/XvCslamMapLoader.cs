@@ -18,6 +18,15 @@ using UnityEngine.Networking;
 namespace Holo.XR.Core
 {
     /// <summary>
+    /// CSLAM地图数据源
+    /// </summary>
+    public enum CslamMapDataSource
+    {
+        LocalPath,
+        StreamingAssets,
+        WebData
+    }
+    /// <summary>
     /// CSLAM 地图加载器
     /// </summary>
     public class XvCslamMapLoader : XvCslamMapControl
@@ -26,8 +35,11 @@ namespace Holo.XR.Core
         [Header("Load Settings")]
         public bool autoLoad = true;
 
-        [Tooltip("The file is in the directory of streamingAssets.")]
-        public bool streamingAssets = false;
+        public CslamMapDataSource sourceType = CslamMapDataSource.LocalPath;
+
+        [Header("Web Data")]
+        public string webUrl = null;
+
 
         //默认自动加载的延时时间，仅影响第一次场景加载
         private int delay = 5000;
@@ -94,16 +106,21 @@ namespace Holo.XR.Core
         public void LoadMap()
         {
 
-            if (Application.platform != RuntimePlatform.Android)
-                return;
+            //if (Application.platform != RuntimePlatform.Android)
+            //    return;
 
-            if (streamingAssets)
+            switch (sourceType)
             {
-                LoadMapByStreamingAssets();
-            }
-            else
-            {
-                LoadMapByLoacalFolder();
+                case CslamMapDataSource.LocalPath:
+                    LoadMapByLoacalFolder();
+                    break;
+                case CslamMapDataSource.StreamingAssets:
+                    LoadMapByStreamingAssets();
+                    break;
+                case CslamMapDataSource.WebData:
+                    LoadMapByWebUrl();
+                    break;
+
             }
         }
 
@@ -187,7 +204,7 @@ namespace Holo.XR.Core
                         Directory.CreateDirectory(destinationFolderPath);
                     }
 
-                    StartCoroutine(CopyMapPackageFromStreamAssets(
+                    StartCoroutine(CopyMapPackageFromRequest(
                         sourceFilePath,
                         destinationFilePath,
                         destinationFolderPath,
@@ -209,9 +226,66 @@ namespace Holo.XR.Core
         }
 
         /// <summary>
-        /// 从StreamAssets中将地图包拷贝
+        /// 通过URL加载地图数据
+        /// <code>注：第一次请求会生成缓存，见持久化路径的homap文件夹</code>
         /// </summary>
-        private IEnumerator CopyMapPackageFromStreamAssets(string sourceFilePath, string destinationFilePath,
+        private void LoadMapByWebUrl()
+        {
+            //文件夹相对路径格式校验
+            if (!folderPath.StartsWith("/"))
+            {
+                folderPath = "/" + folderPath;
+            }
+
+            //要拷贝至的目标文件夹路径
+            string destinationFolderPath = persistentDataPath + folderPath;
+
+            //先读取缓存" ./cache/..."
+            string cacheFolderPath = destinationFolderPath + HoloConfig.cacheFolder;
+            string mapPath = cacheFolderPath + mapName + HoloConfig.cslamMapSuffix;
+            string tagPose = cacheFolderPath + mapName + HoloConfig.tagPoseSuffix;
+            if (!File.Exists(mapPath) || !File.Exists(tagPose))
+            {
+                //web路径下的地图文件包路径webUrl
+
+                //目标文件路径
+                string destinationFilePath = destinationFolderPath + "/" + mapName + HoloConfig.mapPackageSuffix;
+
+                //判断目标文件是否存在，文件不存在，则执行拷贝操作
+                if (!File.Exists(destinationFilePath))
+                {
+                    if (!Directory.Exists(destinationFolderPath))
+                    {
+                        //创建目标文件夹
+                        Directory.CreateDirectory(destinationFolderPath);
+                    }
+
+                    //将webUrl的数据拷贝至持久化路径
+                    StartCoroutine(CopyMapPackageFromRequest(
+                        webUrl,
+                        destinationFilePath,
+                        destinationFolderPath,
+                        mapPath,
+                        tagPose
+                        ));
+                }
+                else
+                {
+                    //在目标文件夹解压指定名称的地图文件
+                    UnZipMapFilePackage(destinationFolderPath, mapName);
+                    ReadCslamMap(mapPath, tagPose);
+                }
+            }
+            else
+            {
+                ReadCslamMap(mapPath, tagPose);
+            }
+        }
+
+        /// <summary>
+        /// 从StreamAssets或webUrl中将地图包拷贝
+        /// </summary>
+        private IEnumerator CopyMapPackageFromRequest(string sourceFilePath, string destinationFilePath,
             string destinationFolderPath, string mapPath, string tagPose)
         {
             using (UnityWebRequest www = UnityWebRequest.Get(sourceFilePath))
@@ -259,12 +333,15 @@ namespace Holo.XR.Core
                 API.xslam_load_map_and_switch_to_cslam(mapPath, OnCslamSwitched, OnLoadLocalized);
 #endif
                 //读取位置关系
-                LoadSceneNodeChildren(tagPose);
+                bool status = LoadSceneNodeChildren(tagPose);
 
 
 #if DEBUG_MODEL
-                AndroidUtils.GetInstance().ShowToast("匹配成功！\n" + mapPath);
+                if (status)
+                {
+                    AndroidUtils.GetInstance().ShowToast("匹配成功！\n" + mapPath);
                     EqLog.d("XvCslamMapLoader", "loadingComplete");
+                }
 #endif
                 complete?.Invoke();
             }
@@ -290,7 +367,7 @@ namespace Holo.XR.Core
         /// <summary>
         /// 读取场景节点
         /// </summary>
-        private void LoadSceneNodeChildren(string jsonFilePath)
+        private bool LoadSceneNodeChildren(string jsonFilePath)
         {
             string data;
 
@@ -302,6 +379,7 @@ namespace Holo.XR.Core
                     AndroidUtils.GetInstance().ShowToast("缺少Tag位置信息");
 #endif
                 data = "";
+                return false;
             }
             else
             {
@@ -382,6 +460,7 @@ namespace Holo.XR.Core
                 EqLog.e("XvCslamMapLoader", "data was null");
             }
 #endif
+            return true;
         }
 
         /// <summary>

@@ -31,7 +31,7 @@ namespace Holo.XR.Core
         [Header("File Name")]
         public string mapName;
 
-        [Tooltip("When completed")]
+        [Header("When completed")]
         public UnityEvent complete;
 
         [Tooltip("Root Node")]

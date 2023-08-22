@@ -60,7 +60,7 @@ namespace Holo.XR.Editor.Utils
         /// <summary>
         /// 导入场景加载器
         /// </summary>
-        public static void ImportMapLoader(string folderPath, string mapName,bool streaminAssets)
+        public static void ImportMapLoader(string folderPath, string mapName,CslamMapDataSource dataSourceType,string webUrl)
         {
             GameObject[] obj = GetHoloRootNode();
             GameObject mapObj = obj[0];
@@ -68,7 +68,8 @@ namespace Holo.XR.Editor.Utils
 
             XvCslamMapLoader xvCslamMapLoader = mapLoaderObj.AddComponent<XvCslamMapLoader>();
             xvCslamMapLoader.content = mapLoaderObj;
-            xvCslamMapLoader.streamingAssets = streaminAssets;
+            xvCslamMapLoader.sourceType = dataSourceType;
+            xvCslamMapLoader.webUrl = webUrl;
 
             if (folderPath != null)
             {
