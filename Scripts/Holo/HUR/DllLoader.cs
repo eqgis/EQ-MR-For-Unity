@@ -169,7 +169,7 @@ namespace Holo.HUR
             //½ø¶È100%
             if (OnProgressUpdate != null)
             {
-                OnProgressUpdate(max, max, null);
+                OnProgressUpdate(1.0f);
             }
 
             onDownloadComplete();
