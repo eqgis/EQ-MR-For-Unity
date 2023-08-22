@@ -33,6 +33,11 @@ namespace Holo.Data
         /// </summary>
         private string lastestDataFolderName;
 
+        /// <summary>
+        /// 进度更新
+        /// </summary>
+        public event ProgressUpdateDelegate OnProgressUpdate;
+
         private void Awake()
         {
             //数据保存的文件夹路径（采用热更数据路径）
@@ -66,7 +71,13 @@ namespace Holo.Data
         /// <param name="nextAction"></param>
         /// <returns></returns>
         private IEnumerator CheckDataVersion()
-        {
+        {                
+            //更新进度
+            if (OnProgressUpdate != null)
+            {
+                OnProgressUpdate(0f);
+            }
+
             //逻辑：获取服务器的最新版本信息，与本地的版本信息比对
             string baseUrl = url + "/" + XR.Config.HoloConfig.versionFileName;
 
@@ -203,6 +214,12 @@ namespace Holo.Data
         {
             if (!needUpdate)
             {
+                //更新进度
+                if (OnProgressUpdate != null)
+                {
+                    //数据无需下载，进度更新为100%
+                    OnProgressUpdate(1.0f);
+                }
                 //执行unity事件
                 updateDataCompleted.Invoke();
             }
@@ -247,8 +264,11 @@ namespace Holo.Data
                         //根据文件清单下载其他文件
                         SceneEntity sceneEntity = JsonMapper.ToObject<SceneEntity>(sceneCfg);
                         System.Collections.Generic.List<string> fileList = sceneEntity.FileList;
+
+                        int count = 0;
                         foreach (string file in fileList)
                         {
+                            count++;
                             //网络文件路径
                             string downloadFile = url + "/" + lastestDataFolderName + "/" + file;
 
@@ -262,6 +282,11 @@ namespace Holo.Data
 #endif
                                 {
                                     File.WriteAllBytes(saveFolderPath + file, request.downloadHandler.data);
+
+                                    if (OnProgressUpdate != null)
+                                    {
+                                        OnProgressUpdate(((float)count / fileList.Count) * 0.9f);
+                                    }
                                 }
                                 else 
                                 {
@@ -275,6 +300,10 @@ namespace Holo.Data
 
                         //写入版本文件
                         DataIO.WriteVersionFile(saveFolderPath, lastestDataFolderName , true);
+                        if (OnProgressUpdate != null)
+                        {
+                            OnProgressUpdate(1.0f);
+                        }
                         //执行unity事件
                         updateDataCompleted.Invoke();
                     }

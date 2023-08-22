@@ -18,11 +18,10 @@ using HybridCLR;
 namespace Holo.HUR
 {
     /// <summary>
-    /// 进度更新
+    /// 数据读取的进度更新
     /// </summary>
-    /// <param name="progress"></param>
-    /// <param name="currentDownloadAssets"></param>
-    public delegate void ProgressUpdateDelegate(int currentIndex,int total, string currentDownloadAssets);
+    /// <param name="progress">进度</param>
+    public delegate void ProgressUpdateDelegate(float progress);
 
     /// <summary>
     /// DLL加载器
@@ -62,6 +61,9 @@ namespace Holo.HUR
             localFolderPath = Application.persistentDataPath + XR.Config.HoloConfig.hotUpdateDataFolder;
         }
 
+        /// <summary>
+        /// 进度更新
+        /// </summary>
         public event ProgressUpdateDelegate OnProgressUpdate;
 
         void Start()
@@ -72,6 +74,9 @@ namespace Holo.HUR
             }
         }
 
+        /// <summary>
+        /// 开始读取数据
+        /// </summary>
         public void StartReadData()
         {
             //读取配置文件中的主场景名称
@@ -108,6 +113,11 @@ namespace Holo.HUR
         private IEnumerator LoadAssets(Action onDownloadComplete)
         {
             int max = patchAOT_Assemblies.Count + hotUpdateAssemblyNameList.Count + assetsBundleNameList.Count;
+            //更新进度
+            if (OnProgressUpdate != null)
+            {
+                OnProgressUpdate(0f);
+            }
 
             //非编辑器情况下，要加载unity内置资源
 #if !UNITY_EDITOR
@@ -122,7 +132,8 @@ namespace Holo.HUR
                 //更新进度
                 if (OnProgressUpdate != null)
                 {
-                    OnProgressUpdate(count, max, item);
+                    //OnProgressUpdate(count, max, item);
+                    OnProgressUpdate((float)count / max);
                 }
 
                 ReadDataFromPersistent(item + ".dll.bytes", AssetsType.AOT_META_ASSEMBLY);
@@ -135,7 +146,7 @@ namespace Holo.HUR
                 //更新进度
                 if (OnProgressUpdate != null)
                 {
-                    OnProgressUpdate(count, max, item);
+                    OnProgressUpdate((float)count / max);
                 }
 
                 ReadDataFromPersistent(item + ".dll.bytes", AssetsType.HOT_UPDATE_ASSEMBLY);
@@ -148,7 +159,7 @@ namespace Holo.HUR
                 //更新进度
                 if (OnProgressUpdate != null)
                 {
-                    OnProgressUpdate(count, max, item);
+                    OnProgressUpdate((float)count / max);
                 }
 
                 ReadDataFromPersistent(item, AssetsType.ASSETS_BUNDLE);
@@ -239,7 +250,7 @@ namespace Holo.HUR
 
 
 
-        void OnLoadComplete()
+        private void OnLoadComplete()
         {
 #if DEBUG_LOG
             Debug.Log("OnLoadComplete");
@@ -263,6 +274,19 @@ namespace Holo.HUR
             SceneManager.LoadScene(hotUpdateMainSceneName, LoadSceneMode.Single);
         }
 
+
+        /// <summary>
+        /// 获取入口场景名称
+        /// </summary>
+        /// <returns>入口场景名称</returns>
+        public string getEntrance()
+        {
+            if(hotUpdateMainSceneName != string.Empty)
+            {
+                return hotUpdateMainSceneName;
+            }
+            throw new NullReferenceException();
+        }
     }
 
 
