@@ -1,11 +1,8 @@
 using Holo.HUR;
 using Holo.XR.Android;
-using Holo.XR.Utils;
-using LitJson;
 using System;
 using System.Collections;
 using System.IO;
-using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
@@ -92,7 +89,7 @@ namespace Holo.Data
 #if UNITY_2020_3_OR_NEWER
                 if (webRequest.result != UnityWebRequest.Result.Success)
 #else
-                if (!(webRequest.isHttpError || webRequest.isNetworkError))
+                if (webRequest.isHttpError || webRequest.isNetworkError)
 #endif
                 {
 #if DEBUG
@@ -237,7 +234,7 @@ namespace Holo.Data
 #if UNITY_2020_3_OR_NEWER
                     if (webRequest.result != UnityWebRequest.Result.Success)
 #else
-                    if (!(webRequest.isHttpError || webRequest.isNetworkError))
+                    if (webRequest.isHttpError || webRequest.isNetworkError)
 #endif
                     {
 #if DEBUG
@@ -258,12 +255,16 @@ namespace Holo.Data
                         //数据保存路径file/data/scene.txt
                         // 保存下载的数据到本地文件
                         byte[] data = webRequest.downloadHandler.data;
-                        string sceneCfg = Encoding.UTF8.GetString(data);
-                        File.WriteAllBytes(saveFolderPath + XR.Config.HoloConfig.sceneConfig, data);
-                        Debug.Log("Scene.cfg downloaded and saved.");
+                        //场景配置文件保存路径
+                        string sceneCfgPath = saveFolderPath + XR.Config.HoloConfig.sceneConfig;
+                        File.WriteAllBytes(sceneCfgPath, data);
+#if DEBUG
+                        EqLog.i("DataDownLoader",XR.Config.HoloConfig.sceneConfig + " downloaded and saved.");
+#endif
                         //根据文件清单下载其他文件
-                        SceneEntity sceneEntity = JsonMapper.ToObject<SceneEntity>(sceneCfg);
-                        System.Collections.Generic.List<string> fileList = sceneEntity.FileList;
+                        System.Collections.Generic.List<string> fileList 
+                            = AssetsPackageManager.Instance.LoadSceneConfig(sceneCfgPath).GetFileList();
+
 
                         int count = 0;
                         foreach (string file in fileList)

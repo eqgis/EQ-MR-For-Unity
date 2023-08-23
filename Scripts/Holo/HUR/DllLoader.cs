@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.IO;
 using System.Reflection;
-using LitJson;
 using Holo.Data;
 using Holo.XR.Android;
 using UnityEngine.SceneManagement;
@@ -38,17 +37,13 @@ namespace Holo.HUR
         [Header("资源加载完成后执行事件")]
         public UnityEvent loadComplete;
 
-        //[Header("热更新 AssetsBundle")]
-        private List<string> assetsBundleNameList = new List<string>() {
-            /*场景依赖的资源*/XR.Config.EditorConfig.GetPreAssestName(),
-            /*场景输出的AB包名称*/XR.Config.EditorConfig.GetHotUpdateAbName()
-        };
+        //热更新 AssetsBundle
+        private List<string> assetsBundleNameList;
 
-        [Header("热更新 DLL")]
-        public List<string> hotUpdateAssemblyNameList = new List<string>();
-
-        [Header("补充元数据AOT dlls")]
-        public List<string> patchAOT_Assemblies = new List<string>();
+        //热更新 DLL
+        private List<string> hotUpdateAssemblyNameList;
+        //补充元数据AOT dlls
+        private List<string> patchAOT_Assemblies;
 
         //持久化Data路径
         private string localFolderPath;
@@ -86,18 +81,17 @@ namespace Holo.HUR
 #if DEBUG
                 AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
 #endif
-                //默认入口为“Main”
-                this.hotUpdateMainSceneName = "Main";
             }
-            else
-            {
-                string jsonStr = File.ReadAllText(cfgJsonPath);
-                SceneEntity sceneEntity = JsonMapper.ToObject<SceneEntity>(jsonStr);
-                this.hotUpdateMainSceneName = sceneEntity.MainScene;
+            //读取配置资源路径，注意：若这之前读取过，AssetsPackageManager.Instance则不会再次读取
+            AssetsPackageManager apMgr = AssetsPackageManager.Instance;
+            apMgr.LoadSceneConfig(cfgJsonPath);
+            this.hotUpdateMainSceneName = apMgr.GetMainSceneName();
+            this.assetsBundleNameList = apMgr.GetAssetsBundleList();
+            this.hotUpdateAssemblyNameList = apMgr.GetHotUpdateAssemblies();
+            this.patchAOT_Assemblies = apMgr.GetAotMetaAssemblies();
 #if DEBUG_LOG
-                EqLog.d("DllLoader-Start-MainSceneName:", hotUpdateMainSceneName);
+            EqLog.d("DllLoader-Start-MainSceneName:", hotUpdateMainSceneName);
 #endif
-            }
 
 
             StartCoroutine(LoadAssets(this.OnLoadComplete));
@@ -118,11 +112,6 @@ namespace Holo.HUR
             {
                 OnProgressUpdate(0f);
             }
-
-            //非编辑器情况下，要加载unity内置资源
-#if !UNITY_EDITOR
-            loadInnerResource();
-#endif
 
             //注意：加载顺序，AOTMetaAssemblt->热更dll->AB包
             int count = 0;
@@ -177,27 +166,6 @@ namespace Holo.HUR
             yield return null;
         }
 
-        /// <summary>
-        /// 加载Unity内置资源
-        /// </summary>
-        private void loadInnerResource()
-        {
-            try
-            {
-                //AssetDatabase.LoadAllAssetsAtPath("Library/unity default resources");
-                //AssetDatabase.LoadAllAssetsAtPath("Resources/unity_builtin_extra");
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("loadInnerResource: " + e.Message);
-#if DEBUG_LOG
-                EqLog.w("DllLoader", "loadInnerResource: " + e.Message);
-#endif
-            }
-            //AssetDatabase.LoadAllAssetsAtPath("Library/unity editor resources");
-
-        }
-
         private void ReadDataFromPersistent(string asset,AssetsType type)
         {
 
@@ -210,39 +178,47 @@ namespace Holo.HUR
 #endif
                 return;
             }
-            byte[] data = DataIO.Read(dllPath,type.ToString());
-
-            switch (type)
+            try
             {
-                case AssetsType.ASSETS_BUNDLE:
-                    //加载AB包
-                    AssetBundleManager.Instance.LoadAB(asset,data);
-#if DEBUG_LOG
-                    Debug.Log($"LoadAssetsBundle:{asset}");
-#endif
-                    break;
-                case AssetsType.AOT_META_ASSEMBLY:
-                    //加载补充元数据
-                    /// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
-                    /// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
-                    /// 
-                    HomologousImageMode mode = HomologousImageMode.SuperSet;
+                byte[] data = DataIO.Read(dllPath, type.ToString());
 
-                    // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
-                    LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(data, mode);
+                switch (type)
+                {
+                    case AssetsType.ASSETS_BUNDLE:
+                        //加载AB包
+                        AssetBundleManager.Instance.LoadAB(asset, data);
 #if DEBUG_LOG
-                    Debug.Log($"LoadMetadataForAOTAssembly:{asset}. mode:{mode} ret:{err}");
+                        Debug.Log($"LoadAssetsBundle:{asset}");
 #endif
-                    break;
-                case AssetsType.HOT_UPDATE_ASSEMBLY:
-                    Assembly.Load(data);
+                        break;
+                    case AssetsType.AOT_META_ASSEMBLY:
+                        //加载补充元数据
+                        /// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
+                        /// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
+                        /// 
+
+                        HomologousImageMode mode = HomologousImageMode.SuperSet;
+
+                        // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
+                        LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(data, mode);
 #if DEBUG_LOG
-                    Debug.Log($"LoadHotUpdateAssembly:{asset}");
+                        Debug.Log($"LoadMetadataForAOTAssembly:{asset}. mode:{mode} ret:{err}");
 #endif
-                    break;
+                        break;
+                    case AssetsType.HOT_UPDATE_ASSEMBLY:
+                        Assembly.Load(data);
+#if DEBUG_LOG
+                        Debug.Log($"LoadHotUpdateAssembly:{asset}");
+#endif
+                        break;
+                }
+                data = null;
+#endif
+            }catch (Exception e)
+            {
+                EqLog.e("DllLoader",e.ToString());
             }
-            data = null;
-#endif
+
         }
 
 

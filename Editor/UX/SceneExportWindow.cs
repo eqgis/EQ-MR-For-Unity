@@ -8,8 +8,6 @@ using Holo.Data;
 using LitJson;
 using System.Text;
 using Holo.HUR;
-using UnityEngine.SceneManagement;
-using UnityEditor.SceneManagement;
 using System.Linq;
 
 namespace Holo.XR.Editor.UX
@@ -81,8 +79,6 @@ namespace Holo.XR.Editor.UX
             GUILayout.Space(10);
 
 
-            GUILayout.BeginVertical();
-
             if (GUILayout.Button("导出", GUILayout.Width(100)))
             {
                 //参数检查
@@ -99,10 +95,13 @@ namespace Holo.XR.Editor.UX
                     PopWindow.Show("\"入口场景\"设置有误", 120, 80);
                     return;
                 }
-
+                EditorUtility.DisplayProgressBar("Building", "...", 0);
                 //输出路径
                 string outPutPath = Application.streamingAssetsPath + ExportUtils.hotUpdatePath;
+                //临时文件输出路径
+                string tmpOutputPath = outPutPath + "/tmp";
 
+                EditorUtility.DisplayProgressBar("Export Scene ", "Export Scene ", 5);
                 if (Directory.Exists(outPutPath))
                 {
                     // 删除所有文件
@@ -122,12 +121,13 @@ namespace Holo.XR.Editor.UX
                 ExportUtils.ExecExport();
 
                 //2、创建静态资源ab包
-                CreateAssetBundle(outPutPath);
+                CreateAssetBundle(outPutPath, tmpOutputPath);
 
                 //3、创建场景配置文件路径
+                string cfgTmpPath = tmpOutputPath + "/" + Config.EditorConfig.GetSceneConfigName();
                 string cfgPath = outPutPath + "/" + Config.EditorConfig.GetSceneConfigName();
                 //构建场景数据并写入
-                SceneEntity sceneEntity = new SceneEntity();
+                HoloSceneConfig sceneEntity = new HoloSceneConfig();
                 //记录入口场景
                 sceneEntity.MainScene = sceneNames[mainSceneIndex];
                 sceneEntity.FileList = new List<string>();
@@ -152,30 +152,68 @@ namespace Holo.XR.Editor.UX
                     }
                 }
 
+#if HYBIRDCLR_ENABLED
+                //记录AB包资源列表
+                sceneEntity.AssetsBundleList = new List<string>() {
+                    Config.EditorConfig.GetPreAssestName(),
+                    Config.EditorConfig.GetHotUpdateAbName()
+                };
+
+                //记录热更DLL列表
+                List<string> hotUpdateAssemblyNameList = new List<string>();
+                foreach (var item in HybridCLR.Editor.SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)
+                {
+                    if (item.EndsWith(".dll"))
+                    {
+                        hotUpdateAssemblyNameList.Add(item.Substring(0, item.Length - 4));
+                    }
+                    else
+                    {
+                        hotUpdateAssemblyNameList.Add(item);
+                    }
+                }
+                sceneEntity.HotUpdateAssemblies = hotUpdateAssemblyNameList;
+
+                //记录AOT 元数据列表
+                List<string> aotMetaAssemblyNames = new List<string>();
+                foreach (var item in HybridCLR.Editor.SettingsUtil.AOTAssemblyNames)
+                {
+                    aotMetaAssemblyNames.Add(item);
+                }
+                sceneEntity.AotMetaAssemblies = aotMetaAssemblyNames;
+#endif
                 //记录文件清单 2023年8月17日21:46:00
-                File.WriteAllText(cfgPath, JsonMapper.ToJson(sceneEntity), new UTF8Encoding(false));
+                File.WriteAllText(cfgTmpPath, JsonMapper.ToJson(sceneEntity), new UTF8Encoding(false));
+                //生成加密数据
+                DataIO.Copy(cfgTmpPath, cfgPath);
 
                 //输出包添加cfg文件
                 sourceFileList.Add(cfgPath);
 
                 Directory.CreateDirectory(dataPath);
 
-                //刷新数据库，会自动更新meta文件
-                AssetDatabase.Refresh();
-
                 string zipFileName = Holo.XR.Config.EditorConfig.GetHotDataName() + "_v" + dataVersion;
                 ZipHelper.Instance.Zip(sourceFileList.ToArray(), dataPath + "/" + zipFileName + ".zip", null, null);
 
                 //写入版本信息
                 DataIO.WriteVersionFile(dataPath, zipFileName, false);
+
+                //删除临时文件夹
+                FileUtil.DeleteFileOrDirectory(tmpOutputPath);
+                //刷新数据库，会自动更新meta文件
+                AssetDatabase.Refresh();
+
+                EditorUtility.ClearProgressBar();
+
                 Debug.Log("导出成功!");
-#if UNITY_EDITOR_WIN
                 string localPath = dataPath.Replace('/', '\\');
+                EditorUtility.DisplayDialog("Success", "Path:\n" + localPath, "ok");
+#if UNITY_EDITOR_WIN
                 System.Diagnostics.Process.Start("explorer.exe", localPath);
 #endif
+                this.Close();
             }
 
-            GUILayout.EndVertical();
 
         }
 
@@ -207,9 +245,10 @@ namespace Holo.XR.Editor.UX
         /// <summary>
         /// 创建AB包
         /// </summary>
-        private void CreateAssetBundle(string parent)
+        /// <param name="parent">最终输出文件路径</param>
+        /// <param name="outputPath">临时输出文件路径</param>
+        private void CreateAssetBundle(string parent,string outputPath)
         {
-            string outputPath = parent + "/tmp";
             //根据输出路径创建AB包
             CreateAB(outputPath);
             //拷贝两个，一个
@@ -218,13 +257,6 @@ namespace Holo.XR.Editor.UX
 
             ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName(),
                 parent + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName());
-
-            //删除临时文件
-            string[] files = Directory.GetFiles(outputPath);
-            foreach (string file in files)
-            {
-                File.Delete(file);
-            }
         }
 
         /// <summary>
