@@ -9,6 +9,7 @@ public class CubeScript : MonoBehaviour
 {
     public float rotationSpeed = 50.0f; // Ðý×ªËÙ¶È
     // Start is called before the first frame update
+
     void Start()
     {
         

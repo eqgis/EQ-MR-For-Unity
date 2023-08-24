@@ -41,23 +41,23 @@ namespace Holo.XR.Editor.Utils
             //同步资源列表
 
             //同步热更DLL列表
-            foreach (var item in SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)
-            {
-                if (item.EndsWith(".dll"))
-                {
-                    loader.hotUpdateAssemblyNameList.Add(item.Substring(0, item.Length - 4));
-                }
-                else
-                {
-                    loader.hotUpdateAssemblyNameList.Add(item);
-                }
-            }
+            //foreach (var item in SettingsUtil.HotUpdateAssemblyFilesExcludePreserved)
+            //{
+            //    if (item.EndsWith(".dll"))
+            //    {
+            //        loader.hotUpdateAssemblyNameList.Add(item.Substring(0, item.Length - 4));
+            //    }
+            //    else
+            //    {
+            //        loader.hotUpdateAssemblyNameList.Add(item);
+            //    }
+            //}
 
             //同步AOT 元数据列表
-            foreach (var item in SettingsUtil.AOTAssemblyNames)
-            {
-                loader.patchAOT_Assemblies.Add(item);
-            }
+            //foreach (var item in SettingsUtil.AOTAssemblyNames)
+            //{
+            //    loader.patchAOT_Assemblies.Add(item);
+            //}
 
             dllLoader.transform.parent = mapObj.transform;
             dllLoader.tag = tag;
@@ -69,7 +69,7 @@ namespace Holo.XR.Editor.Utils
 
         internal static void ExportDllAndAssetsBundle()
         {
-            SceneExportWindow win = EditorWindow.GetWindow<SceneExportWindow>(false, "Export-Settings");
+            SceneExportWindow win = EditorWindow.GetWindow<SceneExportWindow>(true, "Export-Settings");
             win.Show();
         }
     }
