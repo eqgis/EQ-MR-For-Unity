@@ -64,10 +64,9 @@ namespace Holo.XR.Editor.Utils
         {
             GameObject[] obj = GetHoloRootNode();
             GameObject mapObj = obj[0];
-            GameObject mapLoaderObj = obj[1];
 
-            XvCslamMapLoader xvCslamMapLoader = mapLoaderObj.AddComponent<XvCslamMapLoader>();
-            xvCslamMapLoader.content = mapLoaderObj;
+            XvCslamMapLoader xvCslamMapLoader = mapObj.AddComponent<XvCslamMapLoader>();
+            xvCslamMapLoader.content = mapObj;
             xvCslamMapLoader.sourceType = dataSourceType;
             xvCslamMapLoader.webUrl = webUrl;
 
