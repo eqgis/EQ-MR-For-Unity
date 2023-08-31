@@ -33,7 +33,7 @@ namespace Holo.Speech
                 {
                     DestroyEngine();
                 }
-                engine = new AndroidJavaObject("com.eqgis.speech.sbc.SbcAsrEngine", this.name, cloud);
+                engine = new AndroidJavaObject("com.eqgis.speech.sbc.SbcWakeupEngine", this.name);
             }
             //³õÊ¼»¯ÒýÇæ
             StartCoroutine(InnerInitEngine(callback));
