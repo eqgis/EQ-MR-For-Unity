@@ -1,3 +1,4 @@
+using Holo.XR.Android;
 using System;
 using UnityEngine;
 
@@ -10,6 +11,9 @@ namespace Holo.Speech
     {
         public UnitySpeechCallback() : base("com.eqgis.speech.UnitySpeechCallback")
         {
+#if DEBUG
+            EqLog.i("UnitySpeechCallback", "com.eqgis.speech.UnitySpeechCallback");
+#endif
         }
 
         /// <summary>
@@ -17,12 +21,10 @@ namespace Holo.Speech
         /// </summary>
         public abstract void OnBeginningOfSpeech();
 
-
         /// <summary>
         /// 说话结束时回调
         /// </summary>
         public abstract void OnEndOfSpeech();
-
 
         /// <summary>
         /// 语音识别就绪
