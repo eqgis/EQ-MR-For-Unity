@@ -1,4 +1,3 @@
-using Holo.XR.Android;
 using System;
 using UnityEngine;
 
@@ -9,12 +8,7 @@ namespace Holo.Speech
     /// </summary>
     public abstract class UnitySpeechCallback : AndroidJavaProxy
     {
-        public UnitySpeechCallback() : base("com.eqgis.speech.UnitySpeechCallback")
-        {
-#if DEBUG
-            EqLog.i("UnitySpeechCallback", "com.eqgis.speech.UnitySpeechCallback");
-#endif
-        }
+        public UnitySpeechCallback() : base("com.eqgis.speech.UnitySpeechCallback") { }
 
         /// <summary>
         /// 检测到说话时回调

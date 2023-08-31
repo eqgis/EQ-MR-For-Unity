@@ -1,5 +1,4 @@
 using Holo.XR.Android;
-using System.Collections;
 using UnityEngine;
 
 namespace Holo.Speech

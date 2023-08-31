@@ -1,3 +1,4 @@
+using Holo.XR.Android;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -16,7 +17,7 @@ namespace Holo.Speech
 
         [Header("鉴权回调")]
         public UnityEvent success;
-        public UnityEvent<string> error;
+        public UnityEvent error;
 
         private AndroidJavaObject sbcAuthTool;
         private SbcAuthCallback sbcAuthCallback;
@@ -30,7 +31,41 @@ namespace Holo.Speech
 
             sbcAuthTool = new AndroidJavaObject("com.eqgis.speech.sbc.SbcAuthTool", this.name);
             //回调事件
-            sbcAuthCallback = new SbcAuthCallback(success,error);
+            sbcAuthCallback = new SbcAuthCallback();
+            sbcAuthCallback.success = success;
+            sbcAuthCallback.error = error;
+        }
+
+        private void Start()
+        {
+            if(autoAuth)
+            {
+                RequestPermission();
+                InvokeRepeating("CheckAuth", 0.1F, 2F);
+            }
+        }
+
+        /// <summary>
+        /// 检查授权
+        /// </summary>
+        private void CheckAuth()
+        {
+            if (IsAuthorized())
+            {
+                CancelInvoke("CheckAuth");
+            }
+            else
+            {
+                InitAsync();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            sbcAuthCallback.javaInterface.Dispose();
+            sbcAuthTool.Dispose();
+            sbcAuthCallback = null;
+            sbcAuthTool =null;
         }
 
 
@@ -40,13 +75,14 @@ namespace Holo.Speech
         public void InitAsync()
         {
             if (sbcAuthTool == null) return;
-            sbcAuthTool.Call("initAsyncFromUnity",sbcAuthCallback, apiKey,productID,productKey,productSecret);
+            //sbcAuthTool.Call("initAsync", apiKey,productID,productKey,productSecret);
+            sbcAuthTool.Call("initAsyncFromUnity", sbcAuthCallback, apiKey, productID, productKey, productSecret);
         }
 
         /// <summary>
         /// 获取语音缓存文件夹目录
         /// </summary>
-        /// <returns></returns>
+        /// <returns>语音缓存文件夹路径</returns>
         public string GetCacheFolderPath() {
             if (cacheFolderPath == null && sbcAuthTool != null)
             {
@@ -58,7 +94,7 @@ namespace Holo.Speech
         /// <summary>
         /// 请求权限
         /// </summary>
-        public void RequestPermiision()
+        public void RequestPermission()
         {
             if (sbcAuthTool == null) return;
             sbcAuthTool.Call("requestPermission");
@@ -68,107 +104,105 @@ namespace Holo.Speech
         /// 判断鉴权状态
         /// </summary>
         /// <returns>状态值</returns>
-        public bool isAuthorized()
+        public bool IsAuthorized()
         {
             if (sbcAuthCallback == null) return false;
-            return sbcAuthCallback.isAuthorized();
+            return sbcAuthCallback.IsAuthorized();
+        }
+
+        /// <summary>
+        /// 授权事件回调
+        /// </summary>
+        private class SbcAuthCallback : UnitySpeechCallback
+        {
+            public UnityEvent success { get; set; }
+            public UnityEvent error { get; set; }
+            private bool authorized = false;
+
+            /// <summary>
+            /// 判断鉴权状态
+            /// </summary>
+            /// <returns>状态值</returns>
+            public bool IsAuthorized()
+            {
+                return authorized;
+            }
+
+            /// <summary>
+            /// SDK初始化成功时回调
+            /// </summary>
+            public override void OnInitSuccess()
+            {
+#if DEBUG
+                EqLog.d("SbcPlugin", "OnInitSuccess");
+#endif
+                authorized = true;
+                success.Invoke();
+            }
+
+            /// <summary>
+            /// 初始化失败时回调
+            /// </summary>
+            /// <param name="error">错误信息</param>
+            public override void OnError(string errorMsg)
+            {
+#if DEBUG
+                EqLog.e("SbcPlugin", "OnError\n" + errorMsg);
+#endif
+                authorized = false;
+                error.Invoke();
+            }
+
+            public override void OnBeginningOfSpeech()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnEndOfSpeech()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnReadyForSpeech()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnRmsChanged(float var1)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnResults(string var1)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnWakeup(double confidence, string wakeupWord)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnSynthesizeStart(string utteranceId)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnSynthesizeFinish(string utteranceId)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnSpeechStart(string utteranceId)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override void OnSpeechFinish(string utteranceId)
+            {
+                throw new System.NotImplementedException();
+            }
         }
     }
 
-    class SbcAuthCallback : UnitySpeechCallback
-    {
-        public UnityEvent success;
-        public UnityEvent<string> error;
-        private bool authorized = false;
-
-        /// <summary>
-        /// 判断鉴权状态
-        /// </summary>
-        /// <returns>状态值</returns>
-        public bool isAuthorized()
-        {
-            return authorized;
-        }
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        /// <param name="success">成功时回调事件</param>
-        /// <param name="error">失败时回调事件</param>
-        public SbcAuthCallback(UnityEvent success, UnityEvent<string> error)
-        {
-            this.success = success;
-            this.error = error;
-        }
-
-        /// <summary>
-        /// 鉴权成功时回调
-        /// </summary>
-        public override void OnInitSuccess()
-        {
-            authorized = true;
-            success.Invoke();
-        }
-
-        /// <summary>
-        /// 鉴权失败时回调
-        /// </summary>
-        /// <param name="error">错误信息</param>
-        public override void OnError(string errorMsg)
-        {
-            authorized = false;
-            error.Invoke(errorMsg);
-        }
-
-        //以下方法暂不实现
-        public override void OnBeginningOfSpeech()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnEndOfSpeech()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnReadyForSpeech()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnResults(string var1)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnRmsChanged(float var1)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnSpeechFinish(string utteranceId)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnSpeechStart(string utteranceId)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnSynthesizeFinish(string utteranceId)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnSynthesizeStart(string utteranceId)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void OnWakeup(double confidence, string wakeupWord)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
 }
