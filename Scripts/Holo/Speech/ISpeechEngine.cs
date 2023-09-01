@@ -12,6 +12,8 @@ namespace Holo.Speech
         //安卓java对象
         protected AndroidJavaObject engine;
 
+        private bool start = false;
+
         /// <summary>
         /// 调用安卓引擎中的方法
         /// </summary>
@@ -65,7 +67,15 @@ namespace Holo.Speech
         {
             //传入文本
             if (engine == null) { throw new System.Exception("The engine is not initialized."); }
+
+            if (start)
+            {
+                StopEngine();
+            }
+
             CallEngineMethod("start");
+
+            this.start = true;
 #if DEBUG
             EqLog.i(this.name, "StartEngine successful.");
 #endif
@@ -77,6 +87,7 @@ namespace Holo.Speech
         public void StopEngine()
         {
             CallEngineMethod("stop");
+            this.start = false;
 #if DEBUG
             EqLog.i(this.name, "StopEngine successful.");
 #endif

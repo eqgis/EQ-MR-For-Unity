@@ -63,7 +63,7 @@ namespace Holo.Speech
             sbcAuthCallback.javaInterface.Dispose();
             sbcAuthTool.Dispose();
             sbcAuthCallback = null;
-            sbcAuthTool =null;
+            sbcAuthTool = null;
         }
 
 

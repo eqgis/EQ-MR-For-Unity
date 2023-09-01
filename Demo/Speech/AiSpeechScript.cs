@@ -11,17 +11,21 @@ public class AiSpeechScript : MonoBehaviour
 
     public InputField textInput;
 
+    public VoiceAssistant voiceAssistant;
+
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("Start");
+        Debug.Log("日志输出：");
 
     }
 
-    // Update is called once per frame
-    void Update()
+    /// <summary>
+    /// 更新文本
+    /// </summary>
+    public void UpdateText()
     {
-        
+        textInput.text = voiceAssistant.content;
     }
 
     public void AuthSuccess()
@@ -43,9 +47,11 @@ public class AiSpeechScript : MonoBehaviour
 
     public void InitTtsEngine()
     {
-        ttsEngine.InitEngine(new SpeechCallback("TTS"));
-        asrEngine.InitEngine(new SpeechCallback("ASR"));
-        wakeupEngine.InitEngine(new SpeechCallback("Wakeup"));
+        //ttsEngine.InitEngine(new SpeechCallback("TTS"));
+        //asrEngine.InitEngine(new SpeechCallback("ASR"));
+        //wakeupEngine.InitEngine(new SpeechCallback("Wakeup"));
+
+        voiceAssistant.InitEngine();
     }
 
     public void AsrMethod()
