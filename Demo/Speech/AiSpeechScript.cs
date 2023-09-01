@@ -11,6 +11,8 @@ public class AiSpeechScript : MonoBehaviour
 
     public InputField textInput;
 
+    public Text textC;
+
     public VoiceAssistant voiceAssistant;
 
     // Start is called before the first frame update
@@ -25,7 +27,7 @@ public class AiSpeechScript : MonoBehaviour
     /// </summary>
     public void UpdateText()
     {
-        textInput.text = voiceAssistant.content;
+        textC.text = voiceAssistant.content;
     }
 
     public void AuthSuccess()
