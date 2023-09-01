@@ -10,7 +10,7 @@ namespace Holo.Speech
     public class SbcAsrEngine : ISpeechEngine
     {
         [Header("使用云端引擎")]
-        public bool cloud = false;
+        public bool cloud = true;
 
         [Header("本地设置(不设置则采用默认值)")]
 

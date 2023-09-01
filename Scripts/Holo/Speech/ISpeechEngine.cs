@@ -63,6 +63,8 @@ namespace Holo.Speech
         /// </summary>
         public virtual void StartEngine()
         {
+            //传入文本
+            if (engine == null) { throw new System.Exception("The engine is not initialized."); }
             CallEngineMethod("start");
 #if DEBUG
             EqLog.i(this.name, "StartEngine successful.");

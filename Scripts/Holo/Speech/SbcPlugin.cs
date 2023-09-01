@@ -34,11 +34,9 @@ namespace Holo.Speech
             sbcAuthCallback = new SbcAuthCallback();
             sbcAuthCallback.success = success;
             sbcAuthCallback.error = error;
-        }
-
-        private void Start()
-        {
-            if(autoAuth)
+            
+            //自动鉴权的话，执行优先级要调高。
+            if (autoAuth)
             {
                 RequestPermission();
                 InvokeRepeating("CheckAuth", 0.1F, 2F);
