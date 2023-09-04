@@ -164,8 +164,9 @@ namespace Holo.XR.Editor
         [MenuItem("Holo-XR/Settings")]
         public static void Setting()
         {
-            Rect windowRect = new Rect(100, 100, 240, 180);
-            SettingsWindow win = EditorWindow.GetWindowWithRect<SettingsWindow>(windowRect, false, "Holo-Settings");
+            //Rect windowRect = new Rect(100, 100, 240, 180);
+            //SettingsWindow win = EditorWindow.GetWindowWithRect<SettingsWindow>(windowRect, false, "Holo-Settings");
+            SettingsWindow win = EditorWindow.GetWindow<SettingsWindow>(false, "Holo-Settings");
             //win.titleContent = new GUIContent("»´æ÷…Ë÷√");
             win.Show();
         }
