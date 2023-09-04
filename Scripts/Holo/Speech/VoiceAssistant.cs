@@ -1,6 +1,7 @@
 using Holo.XR.Android;
 using UnityEngine;
 using UnityEngine.Events;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace Holo.Speech
 {
@@ -30,6 +31,7 @@ namespace Holo.Speech
     /// </summary>
     class AssistantEntity
     {
+        public UnityEvent initSuccess { get; set; }
         public string entityName { get; set; }
         public VoiceAssistantStatus status { get; set; }
         public SbcWakeupEngine wakeupEngine { get; set; }
@@ -105,6 +107,9 @@ namespace Holo.Speech
         [Header("识别")]
         public UnityEvent recognizeEvent;
 
+        [Header("初始化成功")]
+        public UnityEvent initSuccess;
+
         /// <summary>
         /// 语音识别的内容
         /// </summary>
@@ -136,10 +141,10 @@ namespace Holo.Speech
             assistant.ttsEngine = this.ttsEngine;
             assistant.asrEngine = this.asrEngine;
             assistant.wakeupEngine = this.wakeupEngine;
+            assistant.talkCount = 0;
+            assistant.initSuccess = this.initSuccess;
 
             //创建对应回调事件后执行初始化
-            wakeupEngine.InitEngine(new WakeupCallback(assistant));
-            ttsEngine.InitEngine(new  TtsCallback(assistant));
             asrEngine.InitEngine(new AsrCallback(OnAsrResponse, assistant));
 
             init = true;
@@ -195,6 +200,9 @@ namespace Holo.Speech
                 //初始化成功后，自动启动唤醒引擎
                 entity.status = VoiceAssistantStatus.READY;
                 entity.wakeupEngine.StartEngine();
+                
+                //初始化成功后执行Unity事件
+                entity.initSuccess.Invoke();
             }
 
             public override void OnWakeup(double confidence, string wakeupWord)
@@ -203,8 +211,9 @@ namespace Holo.Speech
                 {
                     //单轮交流说话次数重置
                     entity.talkCount = 0;
-                    //启动TTS引擎
+                    //启动TTS引擎,应答。
                     entity.ttsEngine.textContent = entity.RandomResponse(entity.wakeupResponses);
+                    entity.status = VoiceAssistantStatus.SPEEKING;
                     entity.ttsEngine.StartEngine();
                 }
             }
@@ -234,6 +243,7 @@ namespace Holo.Speech
 
             public override void OnInitSuccess()
             {
+                entity.wakeupEngine.InitEngine(new WakeupCallback(entity));
 #if DEBUG
                 EqLog.d("VoiceAssistant-TtsCallback", "OnInitSuccess");
 #endif
@@ -263,7 +273,9 @@ namespace Holo.Speech
                 switch(entity.talkCount)
                 {
                     case 0:
+                        //说话结束，设置状态为ready
                         //第一次说话是应答语，则启动ASR
+                        entity.status = VoiceAssistantStatus.LISTENNING;
                         entity.asrEngine.StartEngine();
                         break;
                     default:
@@ -283,7 +295,6 @@ namespace Holo.Speech
         private class AsrCallback : UnitySpeechCallback
         {
             private string content;
-            private float readyTime; // 就绪的时间
 
             /// <summary>
             /// 语音助手实体信息
@@ -313,31 +324,27 @@ namespace Holo.Speech
 
             public override void OnInitSuccess()
             {
+                entity.ttsEngine.InitEngine(new TtsCallback(entity));
 #if DEBUG
                 EqLog.d("VoiceAssistant-AsrCallback", "OnInitSuccess");
 #endif
             }
 
             /// <summary>
-            /// 检查静默时长
+            /// 超时响应
             /// </summary>
-            void CheckAsrTimeout()
-            {        
-                // 获取当前时间
-                float currentTime = Time.time;
-                if (currentTime - readyTime >= 10f)
+            public override void OnAsrTimeout()
+            {
+                if (entity.status == VoiceAssistantStatus.LISTENNING)
                 {
-                    //倾听超时，
-                    ////关闭ASR引擎，状态切回
-                    entity.asrEngine.StopEngine();
-                    //entity.status = VoiceAssistantStatus.READY;
-
-                    //启动TTS引擎，说个“再见”
+                    //启动TTS引擎
                     entity.ttsEngine.textContent = entity.RandomResponse(entity.sayByeResponses);
                     entity.ttsEngine.StartEngine();
-                    //关闭定时器
-
                 }
+
+#if DEBUG
+                EqLog.d("VoiceAssistant-AsrCallback", "OnAsrTimeout");
+#endif
             }
 
             /// <summary>
@@ -345,7 +352,6 @@ namespace Holo.Speech
             /// </summary>
             public override void OnReadyForSpeech()
             {
-                readyTime = Time.time;
 #if DEBUG
                 EqLog.d("VoiceAssistant-AsrCallback", "OnReadyForSpeech");
 #endif
@@ -355,7 +361,9 @@ namespace Holo.Speech
 
             public override void OnRmsChanged(float var1)
             {
-                readyTime = Time.time;
+#if DEBUG
+                EqLog.d("VoiceAssistant-AsrCallback", "OnRmsChanged:" + var1);
+#endif
             }
 
             public override void OnBeginningOfSpeech()

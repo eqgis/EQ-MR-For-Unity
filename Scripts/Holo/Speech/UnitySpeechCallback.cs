@@ -6,7 +6,7 @@ namespace Holo.Speech
     /// <summary>
     /// Unity中语音回调
     /// </summary>
-    public abstract class UnitySpeechCallback : AndroidJavaProxy
+    public class UnitySpeechCallback : AndroidJavaProxy
     {
         public UnitySpeechCallback() : base("com.eqgis.speech.UnitySpeechCallback") { }
 
@@ -35,18 +35,23 @@ namespace Holo.Speech
         /// 出错回调
         /// </summary>
         /// <param name="error"></param>
-        public abstract void OnError(String error);
+        public virtual void OnError(String error) { }
 
         /// <summary>
         /// 初始化成功
         /// </summary>
-        public abstract void OnInitSuccess();
+        public virtual void OnInitSuccess() { }
 
         /// <summary>
         /// ASR-识别出结果
         /// </summary>
         /// <param name="var1">识别结果</param>
         public virtual void OnResults(String var1) { }
+
+        /// <summary>
+        /// ASR-超时响应
+        /// </summary>
+        public virtual void OnAsrTimeout() { }
 
         /// <summary>
         ///  WakeUp-语音唤醒成功

@@ -22,6 +22,11 @@ public class AiSpeechScript : MonoBehaviour
 
     }
 
+    public void InitSuccess()
+    {
+        Holo.XR.Android.AndroidUtils.Toast("初始化成功");
+    }
+
     /// <summary>
     /// 更新文本
     /// </summary>
@@ -44,6 +49,11 @@ public class AiSpeechScript : MonoBehaviour
     public void TtsMethod()
     {
         ttsEngine.textContent = textInput.text;
+        ttsEngine.StartEngine();
+    }
+    public void TtsMethod2()
+    {
+        ttsEngine.textContent = "输出文本";
         ttsEngine.StartEngine();
     }
 
