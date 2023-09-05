@@ -337,6 +337,8 @@ namespace Holo.Speech
             {
                 if (entity.status == VoiceAssistantStatus.LISTENNING)
                 {
+                    //超时了，关闭ASR
+                    entity.asrEngine.StopEngine();
                     //启动TTS引擎
                     entity.ttsEngine.textContent = entity.RandomResponse(entity.sayByeResponses);
                     entity.ttsEngine.StartEngine();
