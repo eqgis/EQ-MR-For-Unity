@@ -1,11 +1,14 @@
+using Holo.HUR;
 using Holo.XR.Editor.Utils;
+using LitJson;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace Holo.XR.Editor.UX
 {
-
     public class SettingsWindow : EditorWindow
     {
         private List<MacorItem> m_List = new List<MacorItem>();
@@ -13,8 +16,12 @@ namespace Holo.XR.Editor.UX
         private Dictionary<string, bool> m_Dic = new Dictionary<string, bool>();
 
         private string m_Macor = null;
+        private SbcAuth sbcAuth;
         public void OnEnable()
         {
+            //读取语音配置
+            sbcAuth = SbcAuthUtils.Read();
+
             m_Macor = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android);
             Debug.Log(m_Macor);
             m_List.Clear();
@@ -97,16 +104,32 @@ namespace Holo.XR.Editor.UX
 
             GUILayout.Space(10f);
 
+            GUILayout.Label("思必驰SDK配置:", EditorStyles.boldLabel);
+
+            sbcAuth.apiKey = EditorGUILayout.TextField("Api Key:", sbcAuth.apiKey);
+            sbcAuth.productID = EditorGUILayout.TextField("Product ID:", sbcAuth.productID);
+            sbcAuth.productKey = EditorGUILayout.TextField("Product Key:", sbcAuth.productKey);
+            sbcAuth.productSecret = EditorGUILayout.TextField("Product Secret:", sbcAuth.productSecret);
+
+
+            GUILayout.Space(10f);
+
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace(); // 创建一个伸缩空间，将按钮推到水平中心
             if (GUILayout.Button("保存修改", GUILayout.Width(100)))
             {
                 SaveMacor();
+
+                SbcAuthUtils.SaveSbcAuth();
+
+                PopWindow.Show("修改完成!", 200, 80);
             }
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
+
+
         private void SaveMacor()
         {
             m_Macor = string.Empty;

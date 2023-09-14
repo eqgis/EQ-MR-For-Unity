@@ -2,7 +2,6 @@
 using Holo.XR.Detect;
 using Holo.XR.Core;
 using UnityEngine;
-using Holo.HUR;
 
 namespace Holo.XR.Editor.Utils
 {

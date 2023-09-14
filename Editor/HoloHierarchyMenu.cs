@@ -32,7 +32,7 @@ namespace Holo.XR.Editor
             XvPrefabsCreator.ImportXvThrowScene();
         }
 
-        [MenuItem("GameObject/Holo XR/JumpSceneController", false, 13)]
+        [MenuItem("GameObject/Holo XR/JumpSceneController", false, 14)]
         static void JumpSceneController(MenuCommand menuCommand)
         {
             // Implement the action for Option 2 here
@@ -43,6 +43,16 @@ namespace Holo.XR.Editor
             window.Show();
         }
 #endif
+
+        [MenuItem("GameObject/Holo/VoiceAssistant", false, 14)]
+        static void CreateVoiceAssistant(MenuCommand menuCommand)
+        {
+            GameObject selectedObject = menuCommand.context as GameObject;
+            //¥¥Ω®”Ô“Ù÷˙ ÷
+
+            VoiceAssistantCreator.CreateVoiceAssistant();
+
+        }
     }
 
 }
