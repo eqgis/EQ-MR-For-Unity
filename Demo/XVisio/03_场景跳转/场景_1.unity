@@ -376,7 +376,7 @@ PrefabInstance:
     - target: {fileID: 758493148018881604, guid: b8c077b63d40da546bb7c032cfadb33b, type: 3}
       propertyPath: constraintsManager
       value: 
-      objectReference: {fileID: 339252020}
+      objectReference: {fileID: 355260271}
     - target: {fileID: 1281722241597502027, guid: b8c077b63d40da546bb7c032cfadb33b, type: 3}
       propertyPath: m_Name
       value: Cheese (1)
@@ -440,6 +440,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1287621583177187949, guid: b8c077b63d40da546bb7c032cfadb33b, type: 3}
   m_PrefabInstance: {fileID: 355260269}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &355260271 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5576374999541080485, guid: b8c077b63d40da546bb7c032cfadb33b, type: 3}
+  m_PrefabInstance: {fileID: 355260269}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a98de877dee5fc341b4eb59dfdab266c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &367528371
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,7 +582,8 @@ MonoBehaviour:
       m_Calls: []
   content: {fileID: 684747268}
   autoLoad: 1
-  streamingAssets: 1
+  sourceType: 0
+  webUrl: 
 --- !u!4 &684747270
 Transform:
   m_ObjectHideFlags: 0
