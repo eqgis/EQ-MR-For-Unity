@@ -213,11 +213,11 @@ namespace Holo.HUR
                         break;
                 }
                 data = null;
-
             }catch (Exception e)
             {
                 EqLog.e("DllLoader",e.ToString());
             }
+            
 #endif
         }
 
