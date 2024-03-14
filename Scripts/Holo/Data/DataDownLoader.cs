@@ -99,7 +99,7 @@ namespace Holo.Data
                     }
 #endif
                     EqLog.e("DataDownLoader", "Error downloading file list: " + webRequest.error);
-                    Debug.LogWarning("数据版本校验失败—请检查网络");
+                    Debug.LogWarning("数据版本校验失败—网络连接异常或数据版本文件不存在");
                 }
                 else
                 {
