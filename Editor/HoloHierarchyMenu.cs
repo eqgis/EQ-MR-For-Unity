@@ -32,7 +32,10 @@ namespace Holo.XR.Editor
             XvPrefabsCreator.ImportXvThrowScene();
         }
 
-        [MenuItem("GameObject/Holo XR/JumpSceneController", false, 14)]
+
+#endif
+
+        [MenuItem("GameObject/Holo/JumpSceneController", false, 14)]
         static void JumpSceneController(MenuCommand menuCommand)
         {
             // Implement the action for Option 2 here
@@ -42,9 +45,8 @@ namespace Holo.XR.Editor
             EditWindowJumpSceneController window = EditorWindow.GetWindowWithRect<EditWindowJumpSceneController>(windowRect, true, "输入目标场景名称");
             window.Show();
         }
-#endif
 
-        [MenuItem("GameObject/Holo/VoiceAssistant", false, 14)]
+        [MenuItem("GameObject/Holo/VoiceAssistant", false, 15)]
         static void CreateVoiceAssistant(MenuCommand menuCommand)
         {
             GameObject selectedObject = menuCommand.context as GameObject;
@@ -53,6 +55,18 @@ namespace Holo.XR.Editor
             VoiceAssistantCreator.CreateVoiceAssistant();
 
         }
+
+
+#if ENGINE_ARCORE
+        [MenuItem("GameObject/Holo XR/Camera", false, 11)]
+        static void XvManager(MenuCommand menuCommand)
+        {
+            GameObject selectedObject = menuCommand.context as GameObject;
+            //创建ARCamera(包含ARSession和ARSession Origin)
+            ARCorePrefabsCreator.ImportARCoreCamera();
+        }
+
+#endif
     }
 
 }
