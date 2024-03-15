@@ -95,6 +95,13 @@ namespace Holo.XR.Editor.UX
             GUILayout.Space(10f);
 
             GUILayout.Label("平台选择:", EditorStyles.boldLabel);
+
+            //一键安装ARCore，从本地引入
+            if (GUILayout.Button("Install ARCore", GUILayout.Width(120)))
+            {
+                ARCoreInstaller.Import();
+            }
+
             EditorGUILayout.BeginHorizontal("box");
             for (int i = 3; i < m_List.Count; i++)
             {
