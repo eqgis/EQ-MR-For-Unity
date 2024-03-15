@@ -1,0 +1,42 @@
+{
+    "name": "Google.XR.ARCoreExtensions.GeospatialCreator.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Google.XR.ARCoreExtensions.GeospatialCreator",
+        "Google.XR.ARCoreExtensions.Editor",
+        "Unity.Mathematics",
+        "CesiumRuntime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.cesium.unity",
+            "expression": "1.0.0",
+            "define": "ARCORE_INTERNAL_USE_CESIUM"
+        },
+        {
+            "name": "com.unity.mathematics",
+            "expression": "1.2.0",
+            "define": "ARCORE_INTERNAL_USE_UNITY_MATH"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
+            "expression": "[5.0,6.0)",
+            "define": "ARCORE_USE_ARF_4"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
+            "expression": "[4.0,5.0)",
+            "define": "ARCORE_USE_ARF_4"
+        }
+    ],
+    "noEngineReferences": false
+}
