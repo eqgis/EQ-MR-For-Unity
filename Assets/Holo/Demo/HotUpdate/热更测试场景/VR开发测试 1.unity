@@ -263,7 +263,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dontDestoryGroup:
-  - {fileID: 255849680}
+  - {fileID: 0}
   sceneName: "AR\u6D4B\u8BD5\u73AF\u5883"
   nextSceneNodeTransform: {fileID: 100939037}
   auto: 1
@@ -282,11 +282,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &255849680 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8403467895180786779, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
-  m_PrefabInstance: {fileID: 1260154062}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &264743187
 GameObject:
   m_ObjectHideFlags: 0
@@ -412,17 +407,13 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1260154062
+--- !u!1001 &2128177067
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 318675148049405144, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
-      propertyPath: m_ClearFlags
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5342377574762407385, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_RootOrder
       value: 1

@@ -329,6 +329,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7660429504530183331, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
+      propertyPath: CameraConfigFilter
+      value: 
+      objectReference: {fileID: 11400000, guid: 5dd836fcaa26b2246b7b914e019132b4, type: 2}
     - target: {fileID: 8403467895180786779, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_Name
       value: ARCore Session

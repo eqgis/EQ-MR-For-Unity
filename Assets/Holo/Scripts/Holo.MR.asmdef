@@ -1,15 +1,19 @@
 {
-    "name": "HotfixTest",
+    "name": "Holo.MR",
     "rootNamespace": "",
     "references": [
-        "GUID:c67a2972240773d4897b7a3c1bd6031c"
+        "GUID:13ba8ce62aa80c74598530029cb2d649"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Android",
+        "Editor",
+        "iOS"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
