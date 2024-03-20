@@ -1,13 +1,12 @@
 {
-    "name": "Holo.MR",
+    "name": "Holo.Runtime",
     "rootNamespace": "",
     "references": [
         "GUID:13ba8ce62aa80c74598530029cb2d649"
     ],
     "includePlatforms": [
         "Android",
-        "Editor",
-        "iOS"
+        "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
