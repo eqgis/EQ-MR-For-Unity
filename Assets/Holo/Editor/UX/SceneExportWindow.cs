@@ -198,8 +198,8 @@ namespace Holo.XR.Editor.UX
                 //写入版本信息
                 DataIO.WriteVersionFile(dataPath, zipFileName, false);
 
-                //删除临时文件夹
-                FileUtil.DeleteFileOrDirectory(tmpOutputPath);
+                //删除临时文件夹【临时文件夹中存储未加密的数据，调试时用】
+                //FileUtil.DeleteFileOrDirectory(tmpOutputPath);
                 //刷新数据库，会自动更新meta文件
                 AssetDatabase.Refresh();
 
