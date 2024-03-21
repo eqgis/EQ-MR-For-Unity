@@ -1,8 +1,9 @@
 {
-    "name": "HotfixTest",
+    "name": "Holo.Demo",
     "rootNamespace": "",
     "references": [
-        "GUID:c67a2972240773d4897b7a3c1bd6031c"
+        "GUID:c67a2972240773d4897b7a3c1bd6031c",
+        "GUID:a9420e37d7990b54abdef6688edbe313"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
