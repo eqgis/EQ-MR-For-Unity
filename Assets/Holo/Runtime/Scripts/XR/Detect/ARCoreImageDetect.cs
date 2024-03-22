@@ -50,21 +50,13 @@ namespace Holo.XR.Detect
             [SerializeField, Tooltip("宽度（单位:米），真实世界图片的宽度")]
             float m_Width;
 
-
-            [SerializeField, Tooltip("Exif信息（示例：“字段：属性值”）")]
-            string[] m_Exif;
+            [Header("TrackedImagePrefab"),Tooltip("识别到图像后加载的对象")]
+            public GameObject prefab;
 
             public float width
             {
                 get => m_Width;
                 set => m_Width = value;
-            }
-
-
-            public string[] exif
-            {
-                get => m_Exif;
-                set => m_Exif = value;
             }
 
             public AddReferenceImageJobState jobState { get; set; }
@@ -73,14 +65,21 @@ namespace Holo.XR.Detect
 
         [Header("ARTrackedImageManager")]
         public ARTrackedImageManager m_TrackedImageManager;
+
        
         [Header("ImageTracking Event")]
         public DetectCallback detectCallback;
 
         private Dictionary<string,ARImageInfo> m_ImageDic = new Dictionary<string, ARImageInfo>();
 
-        [Tooltip("在Start时自动载入图片"), Header("Dynamic Image Database")]
-        public bool autoLoadImage = true;
+        //[Tooltip("在Start时自动载入图片"))]
+        //public bool autoLoadImage = true;
+
+        [Tooltip("使用图片的尺寸，若为false，则图像追踪时获取的图像尺寸会设为1.0"), Header("Dynamic Image Database")]
+        public bool useImageSize = true;
+
+        [Tooltip("仅在图片识别到时才显示Prefab")]
+        public bool onlyActiveWhenTracking = false;
 
         [SerializeField, Tooltip("添加图片数据")]
         ImageData[] m_Images;
@@ -88,6 +87,13 @@ namespace Holo.XR.Detect
         [Header("When Image Load Completed"),Tooltip("图像数据库更新完成时执行以下事件")]
         public UnityEvent loadComplete;
 
+        //预设对象的dic
+        Dictionary<string, GameObject> m_PrefabsDictionary = new Dictionary<string, GameObject>();
+
+        //已载入的预制件
+        Dictionary<string, GameObject> m_Instantiated = new Dictionary<string, GameObject>();
+
+        private ARImageDataState m_State = ARImageDataState.NoImagesAdded;
 
         void Awake()
         {
@@ -115,10 +121,9 @@ namespace Holo.XR.Detect
 
         private void Start()
         {
-            if (autoLoadImage) { 
-                //自动载入图片    
-                UpdateImageData();
-            }
+            //if (autoLoadImage) { 
+            //    //自动载入图片，延时执行
+            //}
 #if DEBUG_LOG
             EqLog.d("ARCoreImageDetect", "Start");
 #endif
@@ -132,102 +137,167 @@ namespace Holo.XR.Detect
         }
 
 
+        /// <summary>
+        /// 跟踪事件
+        /// </summary>
+        /// <param name="eventArgs"></param>
         void OnTrackedImagesChanged(ARTrackedImagesChangedEventArgs eventArgs)
         {
+#if DEBUG_LOG
+            EqLog.d("ARCoreImageDetect", "added");
+#endif
             foreach (var trackedImage in eventArgs.added)
             {
                 // Give the initial image a reasonable default scale
                 //trackedImage.transform.localScale = new Vector3(0.01f, 1f, 0.01f);
-                UpdateInfo(trackedImage);
+                ARImageInfo aRImageInfo = UpdateInfo(trackedImage,0);
+
+                //创建预制件
+                CreatePrefab(aRImageInfo);
             }
-
-            foreach (var trackedImage in eventArgs.updated)
-                UpdateInfo(trackedImage);
-
-        }
-
-        /// <summary>
-        /// 给指定图片名称的Image对象添加Exif信息
-        /// </summary>
-        /// <param name="imageName"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        public void addExif(string imageName,string key, string value)
-        {
-            if (!m_ImageDic.ContainsKey(imageName))
-            {
-                ARImageInfo imageInfo = new ARImageInfo();
-                imageInfo.name = imageName;
-                m_ImageDic.Add(imageName, imageInfo);
-            }
-
-            m_ImageDic[imageName].addExif(key, value);
-
-        }
-
-        /// <summary>
-        /// 移除指定图片名称的Image对象的指定字段的Exif信息
-        /// </summary>
-        /// <param name="imageName"></param>
-        /// <param name="key"></param>
-        public void removeExif(string imageName, string key)
-        {
-            if (m_ImageDic.ContainsKey(imageName))
-            {
-                m_ImageDic[imageName].removeExif(key);
-            }
-        }
-
-        void UpdateInfo(ARTrackedImage trackedImage)
-        {
-            //处于跟踪状态
-            if (trackedImage.trackingState == TrackingState.Tracking)
-            {
-                //监听回调
-                if (detectCallback != null)
-                {
-                    string imageName = trackedImage.referenceImage.name;
 #if DEBUG_LOG
-                    EqLog.d("ARCoreImageDetect", "image:" + imageName);
+            EqLog.d("ARCoreImageDetect", "updated");
 #endif
-                    ARImageInfo imageInfo;
-                    //更新extents、size、transform数据
-                    if (m_ImageDic.ContainsKey(imageName))
-                    {
-                        imageInfo = m_ImageDic[imageName];
-                        imageInfo.extents = trackedImage.extents;
-                        imageInfo.size = trackedImage.size;
-                        imageInfo.transform = trackedImage.transform;
-                    }
-                    else
-                    {
-                        //不包括，需新建
-                        imageInfo = new ARImageInfo();
-                        //名称
-                        imageInfo.name = imageName;
-                        imageInfo.extents = trackedImage.extents;
-                        imageInfo.size = trackedImage.size;
-                        imageInfo.transform = trackedImage.transform;
+            foreach (var trackedImage in eventArgs.updated)
+            {
+                //更新信息，包含位姿等属性信息
+                UpdateInfo(trackedImage,1);
+            }
+#if DEBUG_LOG
+            EqLog.d("ARCoreImageDetect", "removed");
+#endif
+            foreach (var trackedImage in eventArgs.removed)
+            {
+                //移除预制件,暂时不移除
+                //RemovePrefab(trackedImage.referenceImage.name);
+                UpdateInfo(trackedImage,2);
+            }
 
-                        //添加
-                        m_ImageDic.Add(imageName, imageInfo);
-                    }
+        }
 
-                    detectCallback.OnDetect(imageInfo);
+        /// <summary>
+        /// 移除预制件
+        /// </summary>
+        public void RemovePrefab(string name)
+        {
+            if (m_Instantiated.TryGetValue(name, out var gameObject))
+            {
+                //销毁对象
+                Destroy(gameObject);
+                m_Instantiated.Remove(name);
+            }
+        }
+
+
+        /// <summary>
+        /// 创建预制件
+        /// </summary>
+        /// <param name="trackedImage"></param>
+        void CreatePrefab(ARImageInfo trackedImage)
+        {
+            if (trackedImage == null)
+            {
+                return;
+            }
+            //若prefabDic中有定义，则需要载入到场景中
+            if (m_PrefabsDictionary.TryGetValue(trackedImage.name, out var prefab))
+            {
+                //若还没有载入场景，则需要进行实例化操作（绑定父节点trackedImage.transform），并存入
+                try
+                {
+                    m_Instantiated[trackedImage.name] = Instantiate(prefab, trackedImage.transform);
+#if DEBUG_LOG
+                    Android.AndroidUtils.Toast("ARCoreImageDetect Instantiate "
+                        + trackedImage.name + " prefabsDic:" + m_PrefabsDictionary.Count
+                        + " m_Instantiated.count:" + m_Instantiated.Count
+                        + " prefabName:"+prefab.name);
+#endif
+                }
+                catch (Exception ex)
+                {
+                    EqLog.w("ARCoreImageDetect", $"CreatePrefab-Error: {ex.Message}");
                 }
 
-                trackedImage.transform.gameObject.SetActive(true);
+            }
+        }
 
+        /// <summary>
+        /// 更新ARImage的信息，并触发callback
+        /// </summary>
+        /// <param name="trackedImage"></param>
+        ARImageInfo UpdateInfo(ARTrackedImage trackedImage,int type)
+        {
+            if (onlyActiveWhenTracking)
+            {
+                //处于跟踪状态
+                if (trackedImage.trackingState == TrackingState.Tracking)
+                {
+                    trackedImage.transform.gameObject.SetActive(true);
+
+                }
+                else
+                {
+                    trackedImage.transform.gameObject.SetActive(false);
+                }
             }
             else
             {
-                trackedImage.transform.gameObject.SetActive(false);
+                trackedImage.transform.gameObject.SetActive(true);
             }
 
+            if (useImageSize)
+            {
+                // Give the initial image a reasonable default scale
+                var minLocalScalar = Mathf.Min(trackedImage.size.x, trackedImage.size.y) / 2;
+                trackedImage.transform.localScale = new Vector3(minLocalScalar, minLocalScalar, minLocalScalar);
+            }
+
+            string imageName = trackedImage.referenceImage.name;
+
+            ARImageInfo imageInfo;
+            //更新extents、size、transform数据
+            if (m_ImageDic.ContainsKey(imageName))
+            {
+                imageInfo = m_ImageDic[imageName];
+                imageInfo.extents = trackedImage.extents;
+                imageInfo.size = trackedImage.size;
+                imageInfo.transform = trackedImage.transform;
+            }
+            else
+            {
+                //不包括，需新建
+                imageInfo = new ARImageInfo();
+                //名称
+                imageInfo.name = imageName;
+                imageInfo.extents = trackedImage.extents;
+                imageInfo.size = trackedImage.size;
+                imageInfo.transform = trackedImage.transform;
+                //添加
+                m_ImageDic.Add(imageName, imageInfo);
+            }
+
+            if (detectCallback != null)
+            {
+                //监听回调
+                switch (type)
+                {
+                    case 0:
+                        if (trackedImage.trackingState == TrackingState.Tracking)
+                            detectCallback.OnAdded(imageInfo);
+                        break;
+                    case 1:
+                        if (trackedImage.trackingState == TrackingState.Tracking)
+                            detectCallback.OnUpdate(imageInfo);
+                        break;
+                    case 2:
+                        detectCallback.OnRemoved(imageInfo);
+                        break;
+                }
+            }
+
+            return imageInfo;
         }
 
-
-        private ARImageDataState m_State = ARImageDataState.NoImagesAdded;
 
 
         /// <summary>
@@ -276,6 +346,9 @@ namespace Holo.XR.Detect
                                 //（只存在热更的AB包（"PresetAssets"）时，会出现不可读的状态）
                                 //此时就需要clone了，这里采用可读状态做判断
                                 image.texture = cloneTexture(image.texture);
+#if DEBUG_LOG
+                                EqLog.d("ARCoreImageDetect", "cloneTexture:->" + image.texture);
+#endif
                             }
                         }
 
@@ -288,7 +361,14 @@ namespace Holo.XR.Detect
                                     // Note: You do not need to do anything with the returned JobHandle, but it can be
                                     // useful if you want to know when the image has been added to the library since it may
                                     // take several frames.
+                                    //向图片数据库添加图像Texture
                                     image.jobState = mutableLibrary.ScheduleAddImageWithValidationJob(image.texture, image.name, image.width);
+
+                                    //向prefabDic中添加image对应的prefab
+                                    m_PrefabsDictionary.Add(image.name, image.prefab);
+#if DEBUG_LOG
+                                    EqLog.d("ARCoreImageDetect", "PrefabsDictionary.add:->" + image.texture);
+#endif
                                 }
 
                                 m_State = ARImageDataState.AddingImages;
