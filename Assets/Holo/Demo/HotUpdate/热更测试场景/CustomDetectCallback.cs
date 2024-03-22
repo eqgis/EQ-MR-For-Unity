@@ -16,7 +16,7 @@ public class DetectMethod : DetectCallback
 
     }
 
-    public override void OnDetect(ARImageInfo image)
+    public override void OnUpdate(ARImageInfo image)
     {
 
     }
