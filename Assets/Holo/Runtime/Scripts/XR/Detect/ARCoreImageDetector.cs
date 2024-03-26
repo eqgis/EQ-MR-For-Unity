@@ -21,46 +21,48 @@ namespace Holo.XR.Detect
         Error
     }
 
-    public class ARCoreImageDetect : MonoBehaviour
+    /// <summary>
+    /// 图片数据
+    /// </summary>
+    [Serializable]
+    public class ImageData
     {
-        /// <summary>
-        /// 图片数据
-        /// </summary>
-        [Serializable]
-        public class ImageData
+        [SerializeField, Tooltip("图像源，必须标记为可读")]
+        Texture2D m_Texture;
+
+        public Texture2D texture
         {
-            [SerializeField, Tooltip("图像源，必须标记为可读")]
-            Texture2D m_Texture;
-
-            public Texture2D texture
-            {
-                get => m_Texture;
-                set => m_Texture = value;
-            }
-
-            [SerializeField, Tooltip("名称")]
-            string m_Name;
-
-            public string name
-            {
-                get => m_Name;
-                set => m_Name = value;
-            }
-
-            [SerializeField, Tooltip("宽度（单位:米），真实世界图片的宽度")]
-            float m_Width;
-
-            [Header("TrackedImagePrefab"),Tooltip("识别到图像后加载的对象")]
-            public GameObject prefab;
-
-            public float width
-            {
-                get => m_Width;
-                set => m_Width = value;
-            }
-
-            public AddReferenceImageJobState jobState { get; set; }
+            get => m_Texture;
+            set => m_Texture = value;
         }
+
+        [SerializeField, Tooltip("名称")]
+        string m_Name;
+
+        public string name
+        {
+            get => m_Name;
+            set => m_Name = value;
+        }
+
+        [SerializeField, Tooltip("宽度（单位:米），真实世界图片的宽度")]
+        float m_Width;
+
+        [Header("TrackedImagePrefab"), Tooltip("识别到图像后加载的对象")]
+        public GameObject prefab;
+
+        public float width
+        {
+            get => m_Width;
+            set => m_Width = value;
+        }
+
+        public AddReferenceImageJobState jobState { get; set; }
+    }
+
+
+    public class ARCoreImageDetector : MonoBehaviour
+    {
 
 
         [Header("ARTrackedImageManager")]
@@ -94,6 +96,13 @@ namespace Holo.XR.Detect
         Dictionary<string, GameObject> m_Instantiated = new Dictionary<string, GameObject>();
 
         private ARImageDataState m_State = ARImageDataState.NoImagesAdded;
+
+
+        /// <summary>
+        /// 获取图像数据
+        /// </summary>
+        /// <returns></returns>
+        public ImageData[] GetImageData() { return m_Images; }
 
         void Awake()
         {
@@ -143,9 +152,7 @@ namespace Holo.XR.Detect
         /// <param name="eventArgs"></param>
         void OnTrackedImagesChanged(ARTrackedImagesChangedEventArgs eventArgs)
         {
-#if DEBUG_LOG
-            EqLog.d("ARCoreImageDetect", "added");
-#endif
+            //added 第一次识别到，会进入added
             foreach (var trackedImage in eventArgs.added)
             {
                 // Give the initial image a reasonable default scale
@@ -155,28 +162,27 @@ namespace Holo.XR.Detect
                 //创建预制件
                 CreatePrefab(aRImageInfo);
             }
-#if DEBUG_LOG
-            EqLog.d("ARCoreImageDetect", "updated");
-#endif
+
+            //updated 后续识别到，会一直处于updateed
             foreach (var trackedImage in eventArgs.updated)
             {
                 //更新信息，包含位姿等属性信息
                 UpdateInfo(trackedImage,1);
             }
-#if DEBUG_LOG
-            EqLog.d("ARCoreImageDetect", "removed");
-#endif
-            foreach (var trackedImage in eventArgs.removed)
-            {
-                //移除预制件,暂时不移除
-                //RemovePrefab(trackedImage.referenceImage.name);
-                UpdateInfo(trackedImage,2);
-            }
+
+            ////removed
+            //foreach (var trackedImage in eventArgs.removed)
+            //{
+            //    //移除预制件,暂时不移除
+            //    //RemovePrefab(trackedImage.referenceImage.name);
+            //    UpdateInfo(trackedImage,2);
+            //}
 
         }
 
         /// <summary>
         /// 移除预制件
+        /// <param name="name">图片名称</param>
         /// </summary>
         public void RemovePrefab(string name)
         {
@@ -187,7 +193,6 @@ namespace Holo.XR.Detect
                 m_Instantiated.Remove(name);
             }
         }
-
 
         /// <summary>
         /// 创建预制件
@@ -289,9 +294,6 @@ namespace Holo.XR.Detect
                         if (trackedImage.trackingState == TrackingState.Tracking)
                             detectCallback.OnUpdate(imageInfo);
                         break;
-                    case 2:
-                        detectCallback.OnRemoved(imageInfo);
-                        break;
                 }
             }
 
@@ -301,14 +303,20 @@ namespace Holo.XR.Detect
 
 
         /// <summary>
-        /// 更新图片数据库
+        /// 加载图片数据库
+        /// <!--仅在done的情况下执行-->
         /// </summary>
 
-        public void UpdateImageData()
+        public void LoadImageData()
         {
-            m_State = ARImageDataState.AddImagesRequested;
+            switch (m_State)
+            {
+                case ARImageDataState.NoImagesAdded:
+                    m_State = ARImageDataState.AddImagesRequested;
+                    break;
+            }
 #if DEBUG_LOG
-            EqLog.d("ARCoreImageDetect", "updateImageData:status->" + m_State);
+            EqLog.d("ARCoreImageDetect", "LoadImageData:status->" + m_State);
 #endif
         }
 
@@ -320,96 +328,103 @@ namespace Holo.XR.Detect
 
         void Update()
         {
-            switch (m_State)
+            try
             {
-                case ARImageDataState.AddImagesRequested:
-                    {
-                        if (m_Images == null)
-                        {
-                            SetError("No images to add.");
-                            break;
-                        }
 
-                        if (m_TrackedImageManager == null)
+                switch (m_State)
+                {
+                    case ARImageDataState.AddImagesRequested:
                         {
-                            SetError($"No {nameof(ARTrackedImageManager)} available.");
-                            break;
-                        }
-
-                        // ARCore 图片数据库只可以传入可读的Texture2D
-                        foreach (var image in m_Images)
-                        {
-                            if (!image.texture.isReadable)
+                            if (m_Images == null)
                             {
-                                //注意：若是传入的texture不是可读状态，则这里clone一个
-                                //在热更使用流程中，若图片资源未在AOT程序集
-                                //（只存在热更的AB包（"PresetAssets"）时，会出现不可读的状态）
-                                //此时就需要clone了，这里采用可读状态做判断
-                                image.texture = cloneTexture(image.texture);
-#if DEBUG_LOG
-                                EqLog.d("ARCoreImageDetect", "cloneTexture:->" + image.texture);
-#endif
-                            }
-                        }
-
-                        if (m_TrackedImageManager.referenceLibrary is MutableRuntimeReferenceImageLibrary mutableLibrary)
-                        {
-                            try
-                            {
-                                foreach (var image in m_Images)
-                                {
-                                    // Note: You do not need to do anything with the returned JobHandle, but it can be
-                                    // useful if you want to know when the image has been added to the library since it may
-                                    // take several frames.
-                                    //向图片数据库添加图像Texture
-                                    image.jobState = mutableLibrary.ScheduleAddImageWithValidationJob(image.texture, image.name, image.width);
-
-                                    //向prefabDic中添加image对应的prefab
-                                    m_PrefabsDictionary.Add(image.name, image.prefab);
-#if DEBUG_LOG
-                                    EqLog.d("ARCoreImageDetect", "PrefabsDictionary.add:->" + image.texture);
-#endif
-                                }
-
-                                m_State = ARImageDataState.AddingImages;
-                            }
-                            catch (InvalidOperationException e)
-                            {
-                                SetError($"ScheduleAddImageJob threw exception: {e.Message}");
-                            }
-                        }
-                        else
-                        {
-                            SetError($"The reference image library is not mutable.");
-                        }
-
-                        break;
-                    }
-                case ARImageDataState.AddingImages:
-                    {
-                        // Check for completion
-                        var done = true;
-                        foreach (var image in m_Images)
-                        {
-                            if (!image.jobState.jobHandle.IsCompleted)
-                            {
-                                done = false;
+                                SetError("No images to add.");
                                 break;
                             }
-                        }
 
-                        if (done)
-                        {
-                            m_State = ARImageDataState.Done;
-                            //图片数据加载完成
-                            if (loadComplete != null)
+                            if (m_TrackedImageManager == null)
                             {
-                                loadComplete.Invoke();
+                                SetError($"No {nameof(ARTrackedImageManager)} available.");
+                                break;
                             }
-                        }
 
-                        break;
-                    }
+                            // ARCore 图片数据库只可以传入可读的Texture2D
+                            foreach (var image in m_Images)
+                            {
+                                if (!image.texture.isReadable)
+                                {
+                                    //注意：若是传入的texture不是可读状态，则这里clone一个
+                                    //在热更使用流程中，若图片资源未在AOT程序集
+                                    //（只存在热更的AB包（"PresetAssets"）时，会出现不可读的状态）
+                                    //此时就需要clone了，这里采用可读状态做判断
+                                    image.texture = cloneTexture(image.texture);
+#if DEBUG_LOG
+                                    EqLog.d("ARCoreImageDetect", "cloneTexture:->" + image.texture);
+#endif
+                                }
+                            }
+
+                            if (m_TrackedImageManager.referenceLibrary is MutableRuntimeReferenceImageLibrary mutableLibrary)
+                            {
+                                try
+                                {
+                                    foreach (var image in m_Images)
+                                    {
+                                        // Note: You do not need to do anything with the returned JobHandle, but it can be
+                                        // useful if you want to know when the image has been added to the library since it may
+                                        // take several frames.
+                                        //向图片数据库添加图像Texture
+                                        image.jobState = mutableLibrary.ScheduleAddImageWithValidationJob(image.texture, image.name, image.width);
+
+                                        //向prefabDic中添加image对应的prefab
+                                        m_PrefabsDictionary.Add(image.name, image.prefab);
+#if DEBUG_LOG
+                                        EqLog.d("ARCoreImageDetect", "PrefabsDictionary.add:->" + image.texture);
+#endif
+                                    }
+
+                                    m_State = ARImageDataState.AddingImages;
+                                }
+                                catch (InvalidOperationException e)
+                                {
+                                    SetError($"ScheduleAddImageJob threw exception: {e.Message}");
+                                }
+                            }
+                            else
+                            {
+                                SetError($"The reference image library is not mutable.");
+                            }
+
+                            break;
+                        }
+                    case ARImageDataState.AddingImages:
+                        {
+                            // Check for completion
+                            var done = true;
+                            foreach (var image in m_Images)
+                            {
+                                if (!image.jobState.jobHandle.IsCompleted)
+                                {
+                                    done = false;
+                                    break;
+                                }
+                            }
+
+                            if (done)
+                            {
+                                m_State = ARImageDataState.Done;
+                                //图片数据加载完成
+                                if (loadComplete != null)
+                                {
+                                    loadComplete.Invoke();
+                                }
+                            }
+
+                            break;
+                        }
+                }
+            }catch(Exception e)
+            {
+                EqLog.w("ARCoreImageDetector", e.Message);
             }
         }
 

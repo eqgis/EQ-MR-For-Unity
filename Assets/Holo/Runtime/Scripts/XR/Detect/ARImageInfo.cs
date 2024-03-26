@@ -18,7 +18,6 @@ namespace Holo.XR.Detect
         public Vector2 extents { get => m_Extents; set => m_Extents = value; }
         public Vector2 size { get => m_Size; set => m_Size = value; }
         public Transform transform { get => m_Transform; set => m_Transform = value; }
-
     }
 
 
