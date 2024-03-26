@@ -160,7 +160,7 @@ namespace Holo.XR.Editor
             Debug.Log("ÒÑÇå¿Õ:" + outPutPath);
         }
 
-        [MenuItem("Holo-XR/BuildBundle-Android", false, 402)]
+        [MenuItem("Holo-XR/BuildBundle-Android #_&_x", false, 402)]
         private static void BuildBundle_Android()
         {
             HURComponentCreator.ExportDllAndAssetsBundle();
