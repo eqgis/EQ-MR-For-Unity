@@ -9,16 +9,20 @@ public class CustomDetect : DetectCallback
     /// <param name="image"></param>
     public override void OnUpdate(ARImageInfo image)
     {
+        string data = GetImageDataMatcher().Match(image.name);
         EqLog.i("DetectMethod", "image.name:" + image.name
-            + "£»image.position:" + image.transform.position);
+            + "£»image.position:" + image.transform.position + "matched:" + data);
     }
 
     public override void OnAdded(ARImageInfo image)
     {
+        string data = GetImageDataMatcher().Match(image.name); 
         EqLog.i("DetectMethod", "image.name:" + image.name
-            + "£»image.position:" + image.transform.position);
+            + "£»image.position:" + image.transform.position + "matched:"+ data);
         AndroidUtils.Toast("image.name:" + image.name
-            + "£»image.position:" + image.transform.position);
+            + "£»image.position:" + image.transform.position + "matched:" + data);
+
+        
     }
 
     public void LoadCompleted()

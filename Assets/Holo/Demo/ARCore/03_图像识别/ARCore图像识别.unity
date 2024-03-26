@@ -143,7 +143,7 @@ MonoBehaviour:
   m_TrackedImageManager: {fileID: 729632567}
   detectCallback: {fileID: 1366287027}
   useImageSize: 1
-  onlyActiveWhenTracking: 0
+  onlyActiveWhenTracking: 1
   m_Images:
   - m_Texture: {fileID: 2800000, guid: fda4fad48bbfa274cafab93812df277b, type: 3}
     m_Name: pic
@@ -151,6 +151,10 @@ MonoBehaviour:
     prefab: {fileID: 1922519436370590602, guid: 057c633d3b00f6b46a86d8f438896565, type: 3}
   - m_Texture: {fileID: 2800000, guid: 038b8a7b4862745aaadfd7c9f14e7bbd, type: 3}
     m_Name: two
+    m_Width: 0.1
+    prefab: {fileID: 1198604946715058548, guid: f5e5dd0cd859c3f4f843468c92e3309e, type: 3}
+  - m_Texture: {fileID: 2800000, guid: a6fd8503774c0402aa403884f5b77f39, type: 3}
+    m_Name: QRCode
     m_Width: 0.1
     prefab: {fileID: 1198604946715058548, guid: f5e5dd0cd859c3f4f843468c92e3309e, type: 3}
   loadComplete:
@@ -234,7 +238,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &729632563
 PrefabInstance:
@@ -253,7 +257,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5342377574762407385, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5342377574762407385, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -325,7 +329,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1922519436370590598, guid: 057c633d3b00f6b46a86d8f438896565, type: 3}
       propertyPath: m_RootOrder
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1922519436370590598, guid: 057c633d3b00f6b46a86d8f438896565, type: 3}
       propertyPath: m_LocalScale.x
@@ -385,6 +389,58 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 057c633d3b00f6b46a86d8f438896565, type: 3}
+--- !u!1 &1119762335
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1119762338}
+  - component: {fileID: 1119762340}
+  m_Layer: 0
+  m_Name: "\u56FE\u50CF\u6570\u636E\u5339\u914D"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1119762338
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1119762335}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1119762340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1119762335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a330da9ec351e3e49b3ab512c5b707a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  imageDetector: {fileID: 86545672}
+  m_PrefabsList:
+  - imageName: pic
+    imageData: pic-12345
+  - imageName: two
+    imageData: two-12345
+  - imageName: QRCode
+    imageData: QRCode-12345
 --- !u!1 &1366287025
 GameObject:
   m_ObjectHideFlags: 0
@@ -429,6 +485,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb8a03b751340f54789398aed3be3e6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  matcher: {fileID: 1119762340}
 --- !u!1 &1834277650
 GameObject:
   m_ObjectHideFlags: 0
@@ -514,8 +571,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 86545672}
-        m_TargetAssemblyTypeName: Holo.XR.Detect.ARCoreImageDetect, Holo.Runtime
-        m_MethodName: UpdateImageData
+        m_TargetAssemblyTypeName: Holo.XR.Detect.ARCoreImageDetector, Holo.Runtime
+        m_MethodName: LoadImageData
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -792,7 +849,7 @@ RectTransform:
   m_Children:
   - {fileID: 1834277651}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
