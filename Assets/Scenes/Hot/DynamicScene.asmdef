@@ -1,0 +1,17 @@
+{
+    "name": "DynamicScene",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c67a2972240773d4897b7a3c1bd6031c",
+        "GUID:a9420e37d7990b54abdef6688edbe313"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

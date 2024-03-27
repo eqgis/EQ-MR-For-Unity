@@ -1,0 +1,55 @@
+using Holo.XR.Android;
+using Holo.XR.Core;
+using Holo.XR.Detect;
+
+public class MainDetectCallback : DetectCallback
+{
+    public JumpSceneController jumpSceneController;
+
+    /// <summary>
+    /// 图片识别到时触发
+    /// </summary>
+    /// <param name="image"></param>
+    public override void OnUpdate(ARImageInfo image)
+    {
+        string data = GetImageDataMatcher().Match(image.name);
+        EqLog.i("DetectMethod", "image.name:" + image.name
+            + "；image.position:" + image.transform.position 
+            + "childcount: " + image.transform.childCount + "matched:" + data);
+
+        //prefab的预制件是第一个子元素
+        UnityEngine.GameObject prefab = image.GetPrefab();
+        if (prefab != null)
+        {
+            //若没有点击事件的组件，则添加
+            if (!prefab.GetComponent<PrefabClickHandler>())
+            {
+                //添加点击事件
+                PrefabClickHandler prefabClickHandler = prefab.AddComponent<PrefabClickHandler>();
+                //先进行数据匹配，再传入数据
+                prefabClickHandler.sceneName = GetImageDataMatcher().Match(image.name);
+                prefabClickHandler.jumpSceneController = jumpSceneController;
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// 初次识别到图像时触发
+    /// </summary>
+    /// <param name="image"></param>
+    public override void OnAdded(ARImageInfo image)
+    {
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void LoadCompleted()
+    {
+#if DEBUG_LOG
+        AndroidUtils.Toast("图片数据库加载完成");
+#endif
+    }
+
+}
