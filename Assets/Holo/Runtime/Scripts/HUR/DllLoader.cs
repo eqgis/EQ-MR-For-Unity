@@ -54,12 +54,26 @@ namespace Holo.HUR
         private void Awake()
         {
             localFolderPath = Application.persistentDataPath + XR.Config.HoloConfig.hotUpdateDataFolder;
+
+#if DEBUG_LOG
+            if (OnProgressUpdate == null)
+            {
+                OnProgressUpdate += OnProgressUpdateDebug;
+            }
+#endif
         }
 
         /// <summary>
         /// 进度更新
         /// </summary>
         public event ProgressUpdateDelegate OnProgressUpdate;
+
+
+        void OnProgressUpdateDebug(float progress)
+        {
+            int pro = (int)(progress * 100);
+            EqLog.d("DllLoader", "loading  " + pro + " %");
+        }
 
         void Start()
         {
@@ -247,7 +261,9 @@ namespace Holo.HUR
 #if DEBUG_LOG
             Debug.Log($"SceneManager.LoadScene({hotUpdateMainSceneName})");
 #endif
-            SceneManager.LoadScene(hotUpdateMainSceneName, LoadSceneMode.Single);
+            //SceneManager.LoadScene(hotUpdateMainSceneName, LoadSceneMode.Single);
+
+            SceneManager.LoadSceneAsync(hotUpdateMainSceneName, LoadSceneMode.Single);
         }
 
 

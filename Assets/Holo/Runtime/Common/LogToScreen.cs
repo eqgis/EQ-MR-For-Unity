@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class LogToScreen : MonoBehaviour
 {
+#if DEBUG_LOG
+    public Color textColor = Color.white;
     const int maxLines = 50;
     const int maxLineLength = 120;
     private string _logStr = "";
@@ -48,6 +50,10 @@ public class LogToScreen : MonoBehaviour
     {
         GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,
            new Vector3(Screen.width / 1200.0f, Screen.height / 800.0f, 1.0f));
-        GUI.Label(new Rect(10, 10, 800, 370), _logStr, new GUIStyle() { fontSize = Math.Max(10, fontSize) });
+        GUIStyle style = new GUIStyle() { fontSize = Math.Max(10, fontSize) };
+        style.normal.textColor = textColor;
+
+        GUI.Label(new Rect(10, 10, 800, 370), _logStr, style);
     }
+#endif
 }

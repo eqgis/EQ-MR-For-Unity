@@ -18,6 +18,14 @@ namespace Holo.XR.Detect
         public Vector2 extents { get => m_Extents; set => m_Extents = value; }
         public Vector2 size { get => m_Size; set => m_Size = value; }
         public Transform transform { get => m_Transform; set => m_Transform = value; }
+
+        public GameObject GetPrefab()
+        {
+            if (m_Transform == null) return null;
+            //若预设了预制件，则获取第一个子对象的游戏对象
+            if (m_Transform.childCount == 0)return null;
+            return transform.GetChild(0).gameObject;
+        }
     }
 
 

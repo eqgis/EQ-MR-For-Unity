@@ -39,6 +39,19 @@ namespace Holo.Data
         {
             //数据保存的文件夹路径（采用热更数据路径）
             saveFolderPath = Application.persistentDataPath + Holo.XR.Config.HoloConfig.hotUpdateDataFolder;
+
+#if DEBUG_LOG
+            if (OnProgressUpdate == null)
+            {
+                OnProgressUpdate += OnProgressUpdateDebug;
+            }
+#endif
+        }
+
+        void OnProgressUpdateDebug(float progress)
+        {
+            int pro = (int)(progress * 100);
+            EqLog.d("DataDownLoader", "downloading  " + pro + " %");
         }
 
         private void Start()
@@ -47,18 +60,16 @@ namespace Holo.Data
 
             if (autoDownload)
             {
-                Invoke("StartDownload", 0.1f);
+                //Invoke("StartDownload", 0.1f);
+                StartCoroutine(CheckDataVersion());
             }
         }
 
+        /// <summary>
+        /// 开始数据下载
+        /// </summary>
         public void StartDownload()
         {
-#if DEBUG
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                AndroidUtils.Toast("checking data...");
-            }
-#endif
             StartCoroutine(CheckDataVersion());
         }
 
@@ -68,7 +79,13 @@ namespace Holo.Data
         /// <param name="nextAction"></param>
         /// <returns></returns>
         private IEnumerator CheckDataVersion()
-        {                
+        {
+#if DEBUG_LOG
+            if (Application.platform == RuntimePlatform.Android)
+            {
+                AndroidUtils.Toast("checking data...");
+            }
+#endif           
             //更新进度
             if (OnProgressUpdate != null)
             {
@@ -92,7 +109,7 @@ namespace Holo.Data
                 if (webRequest.isHttpError || webRequest.isNetworkError)
 #endif
                 {
-#if DEBUG
+#if DEBUG_LOG
                     if (Application.platform == RuntimePlatform.Android)
                     {
                         AndroidUtils.Toast("数据版本校验失败—请检查网络");
@@ -135,7 +152,7 @@ namespace Holo.Data
                     //根据最大版本号，查找本地文件夹,checkLocalData()返回true，表示不需要跟新数据
                     //根据检测返回值，决定是否下载数据
                     bool status = CheckLocalData(maxVersion);
-#if DEBUG
+#if DEBUG_LOG
                     if (status)
                     {
                         Debug.Log("本地已检索到数据");
@@ -223,7 +240,7 @@ namespace Holo.Data
             else
             {
                 string cfgFile = url + "/" + lastestDataFolderName + "/" + XR.Config.HoloConfig.sceneConfig;
-#if DEBUG
+#if DEBUG_LOG
                 Debug.Log("正在更新...");
 #endif
                 //读取配置文件，配置文件中带有数据文件清单
@@ -237,7 +254,7 @@ namespace Holo.Data
                     if (webRequest.isHttpError || webRequest.isNetworkError)
 #endif
                     {
-#if DEBUG
+#if DEBUG_LOG
                         if (Application.platform == RuntimePlatform.Android)
                         {
                             AndroidUtils.Toast("数据清单获取失败—请检查网络");
@@ -258,7 +275,7 @@ namespace Holo.Data
                         //场景配置文件保存路径
                         string sceneCfgPath = saveFolderPath + XR.Config.HoloConfig.sceneConfig;
                         File.WriteAllBytes(sceneCfgPath, data);
-#if DEBUG
+#if DEBUG_LOG
                         EqLog.i("DataDownLoader",XR.Config.HoloConfig.sceneConfig + " downloaded and saved.");
 #endif
                         //根据文件清单下载其他文件

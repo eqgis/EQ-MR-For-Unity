@@ -74,8 +74,8 @@ namespace Holo.XR.Detect
 
         private Dictionary<string,ARImageInfo> m_ImageDic = new Dictionary<string, ARImageInfo>();
 
-        //[Tooltip("在Start时自动载入图片"))]
-        //public bool autoLoadImage = true;
+        [Tooltip("在Start时自动载入图片,当前延时3秒后执行")]
+        public bool autoLoadImage = true;
 
         [Tooltip("使用图片的尺寸，若为false，则图像追踪时获取的图像尺寸会设为1.0"), Header("Dynamic Image Database")]
         public bool useImageSize = true;
@@ -130,9 +130,11 @@ namespace Holo.XR.Detect
 
         private void Start()
         {
-            //if (autoLoadImage) { 
-            //    //自动载入图片，延时执行
-            //}
+            if (autoLoadImage)
+            {
+                //自动载入图片，延时执行
+                Invoke("LoadImageData", 3.0f);
+            }
 #if DEBUG_LOG
             EqLog.d("ARCoreImageDetect", "Start");
 #endif
@@ -157,17 +159,18 @@ namespace Holo.XR.Detect
             {
                 // Give the initial image a reasonable default scale
                 //trackedImage.transform.localScale = new Vector3(0.01f, 1f, 0.01f);
-                ARImageInfo aRImageInfo = UpdateInfo(trackedImage,0);
+                ARImageInfo aRImageInfo = UpdateInfo(trackedImage);
 
                 //创建预制件
                 CreatePrefab(aRImageInfo);
+                Callback(trackedImage, aRImageInfo,0);
             }
 
             //updated 后续识别到，会一直处于updateed
             foreach (var trackedImage in eventArgs.updated)
             {
                 //更新信息，包含位姿等属性信息
-                UpdateInfo(trackedImage,1);
+                Callback(trackedImage, UpdateInfo(trackedImage),1);
             }
 
             ////removed
@@ -212,7 +215,7 @@ namespace Holo.XR.Detect
                 {
                     m_Instantiated[trackedImage.name] = Instantiate(prefab, trackedImage.transform);
 #if DEBUG_LOG
-                    Android.AndroidUtils.Toast("ARCoreImageDetect Instantiate "
+                    EqLog.d("ARCoreImageDetect ", "Instantiate:"
                         + trackedImage.name + " prefabsDic:" + m_PrefabsDictionary.Count
                         + " m_Instantiated.count:" + m_Instantiated.Count
                         + " prefabName:"+prefab.name);
@@ -226,11 +229,30 @@ namespace Holo.XR.Detect
             }
         }
 
+        private void Callback(ARTrackedImage trackedImage,ARImageInfo imageInfo,int type)
+        {
+            if (detectCallback != null)
+            {
+                //监听回调
+                switch (type)
+                {
+                    case 0:
+                        if (trackedImage.trackingState == TrackingState.Tracking)
+                            detectCallback.OnAdded(imageInfo);
+                        break;
+                    case 1:
+                        if (trackedImage.trackingState == TrackingState.Tracking)
+                            detectCallback.OnUpdate(imageInfo);
+                        break;
+                }
+            }
+        }
+
         /// <summary>
         /// 更新ARImage的信息，并触发callback
         /// </summary>
         /// <param name="trackedImage"></param>
-        ARImageInfo UpdateInfo(ARTrackedImage trackedImage,int type)
+        ARImageInfo UpdateInfo(ARTrackedImage trackedImage)
         {
             if (onlyActiveWhenTracking)
             {
@@ -279,22 +301,6 @@ namespace Holo.XR.Detect
                 imageInfo.transform = trackedImage.transform;
                 //添加
                 m_ImageDic.Add(imageName, imageInfo);
-            }
-
-            if (detectCallback != null)
-            {
-                //监听回调
-                switch (type)
-                {
-                    case 0:
-                        if (trackedImage.trackingState == TrackingState.Tracking)
-                            detectCallback.OnAdded(imageInfo);
-                        break;
-                    case 1:
-                        if (trackedImage.trackingState == TrackingState.Tracking)
-                            detectCallback.OnUpdate(imageInfo);
-                        break;
-                }
             }
 
             return imageInfo;

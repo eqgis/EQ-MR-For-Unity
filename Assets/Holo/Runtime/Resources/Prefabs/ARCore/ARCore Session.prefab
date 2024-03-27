@@ -70,7 +70,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4625992364709994873}
   - component: {fileID: 3895931857471170920}
-  - component: {fileID: 3433710548662386947}
+  - component: {fileID: 5029583805132859478}
   m_Layer: 0
   m_Name: AR Session Origin
   m_TagString: Untagged
@@ -107,7 +107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Camera: {fileID: 318675148049405144}
---- !u!114 &3433710548662386947
+--- !u!114 &5029583805132859478
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
