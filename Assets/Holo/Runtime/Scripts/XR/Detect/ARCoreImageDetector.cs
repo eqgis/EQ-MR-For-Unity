@@ -74,7 +74,7 @@ namespace Holo.XR.Detect
 
         private Dictionary<string,ARImageInfo> m_ImageDic = new Dictionary<string, ARImageInfo>();
 
-        [Tooltip("在Start时自动载入图片,当前延时3秒后执行")]
+        [Tooltip("场景启动时自动载入图片数据库")]
         public bool autoLoadImage = true;
 
         [Tooltip("使用图片的尺寸，若为false，则图像追踪时获取的图像尺寸会设为1.0"), Header("Dynamic Image Database")]
@@ -96,6 +96,9 @@ namespace Holo.XR.Detect
         Dictionary<string, GameObject> m_Instantiated = new Dictionary<string, GameObject>();
 
         private ARImageDataState m_State = ARImageDataState.NoImagesAdded;
+
+        //AR相机管理器，在ARCamera对象上
+        private ARCameraManager m_CameraManager;
 
 
         /// <summary>
@@ -126,14 +129,17 @@ namespace Holo.XR.Detect
             EqLog.d("ARCoreImageDetect", "OnDisable");
 #endif
             m_TrackedImageManager.trackedImagesChanged -= OnTrackedImagesChanged;
+            ClearPrefabs();
         }
 
         private void Start()
         {
             if (autoLoadImage)
             {
-                //自动载入图片，延时执行
-                Invoke("LoadImageData", 3.0f);
+                m_CameraManager = FindObjectOfType<ARCameraManager>();
+                m_CameraManager.frameReceived += OnCameraFrameReceived;
+                ////自动载入图片，当ARCamera能正常获取到Frame之后，再载入图片数据库
+                //Invoke("LoadImageData", 3.0f);
             }
 #if DEBUG_LOG
             EqLog.d("ARCoreImageDetect", "Start");
@@ -142,9 +148,37 @@ namespace Holo.XR.Detect
 
         private void OnDestroy()
         {
+            ClearPrefabs();
 #if DEBUG_LOG
             EqLog.d("ARCoreImageDetect", "OnDestroy");
 #endif
+        }
+
+        /// <summary>
+        /// 清除已实例化的预制件
+        /// </summary>
+        private void ClearPrefabs()
+        {
+            foreach (var item in m_Instantiated)
+            {
+                GameObject prefabObject = m_Instantiated[item.Key];
+                Destroy(prefabObject);
+            }
+            m_Instantiated.Clear();
+        }
+
+        /// <summary>
+        /// 当相机帧更新时触发
+        /// </summary>
+        /// <param name="eventArgs"></param>
+        void OnCameraFrameReceived(ARCameraFrameEventArgs eventArgs)
+        {
+            //初次能获取到Frame时，载入图片数据库
+            if (m_State == ARImageDataState.NoImagesAdded)
+            {
+                LoadImageData();
+                m_CameraManager.frameReceived -= OnCameraFrameReceived;
+            }
         }
 
 
@@ -213,7 +247,14 @@ namespace Holo.XR.Detect
                 //若还没有载入场景，则需要进行实例化操作（绑定父节点trackedImage.transform），并存入
                 try
                 {
+                    if (m_Instantiated.TryGetValue(trackedImage.name, out var instantiatedPrefab))
+                    {
+                        //防止二次进入这个场景中时，m_Instantiated中的同名对象未及时销毁导致的对象重复
+                        Destroy(instantiatedPrefab);
+                    }
+
                     m_Instantiated[trackedImage.name] = Instantiate(prefab, trackedImage.transform);
+
 #if DEBUG_LOG
                     EqLog.d("ARCoreImageDetect ", "Instantiate:"
                         + trackedImage.name + " prefabsDic:" + m_PrefabsDictionary.Count
@@ -383,6 +424,7 @@ namespace Holo.XR.Detect
 
                                         //向prefabDic中添加image对应的prefab
                                         m_PrefabsDictionary.Add(image.name, image.prefab);
+
 #if DEBUG_LOG
                                         EqLog.d("ARCoreImageDetect", "PrefabsDictionary.add:->" + image.texture);
 #endif
@@ -482,6 +524,47 @@ namespace Holo.XR.Detect
         //end
     }
 
+
+    ///// <summary>
+    ///// 单例，用于判断程序运行时，是否添加了重复的AR增强图像
+    ///// <!--防止重复添加相同名称的对象-->
+    ///// </summary>
+    //class ARImageMgr
+    //{
+    //    private static ARImageMgr instance;
+
+    //    private List<string> images;
+
+    //    private ARImageMgr() { 
+    //        images = new List<string>();
+    //    }
+
+    //    public static ARImageMgr GetInstance()
+    //    {
+    //        // 如果实例不存在，则创建一个新实例
+    //        if (instance == null)
+    //        {
+    //            instance = new ARImageMgr();
+    //        }
+    //        // 返回单例实例
+    //        return instance;
+    //    }
+
+    //    // 其他成员方法和属性...
+
+    //    public void AddImage(string name)
+    //    {
+    //        images.Add(name);
+    //    }
+    //    public bool HasImage(string name)
+    //    {
+    //        if (images.Contains(name))
+    //        {
+    //            return true;
+    //        }
+    //        return false;
+    //    }
+    //}
 
 }
 
