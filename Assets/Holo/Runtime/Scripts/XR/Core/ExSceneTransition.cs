@@ -1,14 +1,15 @@
 using Holo.XR.Android;
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Holo.XR.Core
 {
     /// <summary>
-    /// 场景跳转控制器
+    /// 场景切换器
     /// </summary>
-    public class JumpSceneController : MonoBehaviour
+    public class ExSceneTransition : MonoBehaviour
     {
         public GameObject[] dontDestoryGroup;
 
@@ -24,6 +25,33 @@ namespace Holo.XR.Core
 
         [Tooltip("自动跳转")]
         public bool auto = false;
+
+        [Header("Fade")]
+        public bool fade = true;
+        [Tooltip("场景切换淡入淡出速度")]
+        public float fadeSpeed = 1.0f;
+        private float alpha = 1f;
+        private int fadeDir = -1;
+
+        private void OnEnable()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            BeginFade(-1);
+        }
+
+        private void BeginFade(int direction)
+        {
+            fadeDir = direction;
+        }
 
         // Start is called before the first frame update
         void Start()
@@ -49,16 +77,16 @@ namespace Holo.XR.Core
         /// 跳转至新场景
         /// </summary>
         /// <param name="sceneName">目标场景名称</param>
-        public void ToNewScene(string sceneName)
+        public void LoadScene(string sceneName)
         {
             this.sceneName = sceneName;
-            ToNewScene();
+            LoadScene();
         }
 
         /// <summary>
         /// 跳转至新场景
         /// </summary>
-        public void ToNewScene()
+        public void LoadScene()
         {
             try
             {
@@ -78,12 +106,49 @@ namespace Holo.XR.Core
                     //}
                 }
 
-                SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+                if (fade)
+                {
+                    InnerLoadScene(sceneName);
+                }
+                else
+                {
+                    SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+                }
             }catch(Exception e)
             {
                 EqLog.e("JumpSceneController",e.ToString());
             }
         }
 
+        /// <summary>
+        /// 使用淡入淡出效果的场景切换
+        /// </summary>
+        /// <param name="sceneName"></param>
+        private void InnerLoadScene(string sceneName)
+        {
+            BeginFade(1);
+            StartCoroutine(LoadSceneAsync(sceneName));
+        }
+
+        IEnumerator LoadSceneAsync(string sceneName)
+        {
+            yield return new WaitForSeconds(((1.0f - alpha) / fadeSpeed) * Time.deltaTime * 100);
+            AsyncOperation asyncOperation = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+
+            while (!asyncOperation.isDone)
+            {
+                yield return null;
+            }
+        }
+
+        private void OnGUI()
+        {
+            alpha += fadeDir * fadeSpeed * Time.deltaTime;
+            alpha = Mathf.Clamp01(alpha);
+
+            GUI.color = new Color(0, 0, 0, alpha);
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height),
+                Texture2D.whiteTexture, ScaleMode.StretchToFill);
+        }
     }
 }

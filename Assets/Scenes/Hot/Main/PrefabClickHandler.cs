@@ -15,7 +15,7 @@ public class PrefabClickHandler : MonoBehaviour,IPointerClickHandler
 
 
     [HideInInspector]
-    public JumpSceneController jumpSceneController;
+    public ExSceneTransition jumpSceneController;
 
     public void OnPointerClick(PointerEventData eventData)
     {
@@ -49,7 +49,7 @@ public class PrefabClickHandler : MonoBehaviour,IPointerClickHandler
         try
         {
             //SceneManager.LoadScene(sceneName);
-            jumpSceneController.ToNewScene(sceneName);
+            jumpSceneController.LoadScene(sceneName);
         }
         catch (Exception e)
         {

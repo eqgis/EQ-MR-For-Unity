@@ -35,7 +35,7 @@ namespace Holo.XR.Editor
 
 #endif
 
-        [MenuItem("GameObject/Holo/JumpSceneController", false, 14)]
+        [MenuItem("GameObject/Holo/ExSceneTransition", false, 14)]
         static void JumpSceneController(MenuCommand menuCommand)
         {
             // Implement the action for Option 2 here

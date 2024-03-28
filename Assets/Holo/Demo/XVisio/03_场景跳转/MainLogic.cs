@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class MainLogic : MonoBehaviour
 {
-    public JumpSceneController jumpSceneController;
+    public ExSceneTransition jumpSceneController;
     // Start is called before the first frame update
     void Start()
     {
@@ -22,6 +22,6 @@ public class MainLogic : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         AndroidUtils.Toast("³¡¾°ÇÐ»»");
-        jumpSceneController.ToNewScene();
+        jumpSceneController.LoadScene();
     }
 }

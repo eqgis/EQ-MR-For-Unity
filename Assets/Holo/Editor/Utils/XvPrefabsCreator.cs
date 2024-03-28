@@ -46,7 +46,7 @@ namespace Holo.XR.Editor.Utils
             GameObject[] gameObjects = GameObject.FindGameObjectsWithTag(MR_SystemTag);
 
             //ƒ¨»œ…Ë÷√
-            JumpSceneController jumpSceneController = gameObject.AddComponent<JumpSceneController>();
+            ExSceneTransition jumpSceneController = gameObject.AddComponent<ExSceneTransition>();
             jumpSceneController.dontDestoryGroup = gameObjects;
             jumpSceneController.nextSceneNodeTransform = gameObject.transform;
             jumpSceneController.auto = isAuto;

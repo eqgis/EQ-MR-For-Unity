@@ -4,7 +4,7 @@ using Holo.XR.Detect;
 
 public class MainDetectCallback : DetectCallback
 {
-    public JumpSceneController jumpSceneController;
+    public ExSceneTransition jumpSceneController;
 
     /// <summary>
     /// 图片识别到时触发
