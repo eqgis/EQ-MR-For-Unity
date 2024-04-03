@@ -1,7 +1,11 @@
 #if ENGINE_ARCORE
 
+using Holo.XR.Android;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -14,8 +18,6 @@ public class PointCloudBlender : MonoBehaviour
 {
     [Header("Mesh")]
     public MeshFilter meshFilter; // 引用MeshFilter组件
-    [Tooltip("专用材质“PointCloud”")]
-    public Material material;
 
     /// <summary>
     /// 传给材质的深度图类型，是否采用ARCore的Raw类型数据
@@ -29,13 +31,14 @@ public class PointCloudBlender : MonoBehaviour
     [Tooltip("相机向前的偏移距离，单位：米")]
     public float OffsetFromCamera = 1.0f;
 
-
     /// <summary>
     /// 点云的置信度
     /// </summary>
     [Header("Confidence Threshold")]
     [Tooltip("置信度阈值,取值区间[0,1]")]
-    public float confidenceValue = 0.8f;
+    public float confidenceValue = 0.6f;
+    [Tooltip("最大距离阈值")]
+    public float distanceThreshold = 5.0f;
 
     /// <summary>
     /// 点云数量控制
@@ -106,6 +109,26 @@ public class PointCloudBlender : MonoBehaviour
     {
         _mesh = new Mesh();
         _mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        
+        try
+        {
+            //获取渲染材质
+            _pointCloudMaterial = GetComponent<Renderer>().material;
+            _pointCloudMaterial.SetFloat(_confidenceThresholdPropertyName, confidenceValue);
+        }catch (Exception ex)
+        {
+            EqLog.e("PointCloudBlender", "The Material of PointCloud was wrong.");
+#if DEBUG_LOG
+            //调试情况下，用Toast进行提示
+            AndroidUtils.Toast("The Material of PointCloud was wrong.");
+#endif
+            return;
+        }
+
+        if (meshFilter == null)
+        {
+            meshFilter = GetComponent<MeshFilter>();
+        }
 
         _cameraManager = FindObjectOfType<ARCameraManager>();
         _cameraManager.frameReceived += OnCameraFrameReceived;
@@ -122,29 +145,35 @@ public class PointCloudBlender : MonoBehaviour
 
     private void Update()
     {
-        // 在深度API初始化完成之前，等待
-        if (!_initialized && DepthSource.Initialized)
+        try
         {
-            _initialized = true;
-        }
-
-        if (_initialized)
-        {
-            if (_cachedUseRawDepth != UseRawDepth)
+            // 在深度API初始化完成之前，等待
+            if (!_initialized && DepthSource.Initialized)
             {
-                DepthSource.SwitchToRawDepth(UseRawDepth);
-                _cachedUseRawDepth = UseRawDepth;
+                _initialized = true;
             }
 
-            UpdateRawPointCloud();
-        }
+            if (_initialized)
+            {
+                if (_cachedUseRawDepth != UseRawDepth)
+                {
+                    DepthSource.SwitchToRawDepth(UseRawDepth);
+                    _cachedUseRawDepth = UseRawDepth;
+                }
+                UpdateRawPointCloud();
+            }
 
-        transform.position = DepthSource.ARCamera.transform.forward * OffsetFromCamera;
-        float normalizedDeltaTime = Mathf.Clamp01(
-            (float)(Time.deltaTime - _minUpdateInvervalInSeconds));
-        _updateInvervalInSeconds = Mathf.Lerp((float)_minUpdateInvervalInSeconds,
-            (float)_maxUpdateInvervalInSeconds,
-            normalizedDeltaTime);
+            transform.position = DepthSource.ARCamera.transform.forward * OffsetFromCamera;
+            float normalizedDeltaTime = Mathf.Clamp01(
+                (float)(Time.deltaTime - _minUpdateInvervalInSeconds));
+            _updateInvervalInSeconds = Mathf.Lerp((float)_minUpdateInvervalInSeconds,
+                (float)_maxUpdateInvervalInSeconds,
+                normalizedDeltaTime);
+        }
+        catch (Exception e)
+        {
+            EqLog.e("PointCloudBlender", e.Message);
+        }
     }
 
     /// <summary>
@@ -224,6 +253,7 @@ public class PointCloudBlender : MonoBehaviour
         bool noConfidenceAvailable = depthArray.Length != confidenceArray.Length;
 
         // 从深度图中创建点云
+        StringBuilder stringBuilder = new StringBuilder();
         for (int y = 0; y < DepthSource.DepthHeight; y++)
         {
             for (int x = 0; x < DepthSource.DepthWidth; x++)
@@ -234,6 +264,12 @@ public class PointCloudBlender : MonoBehaviour
 
                 // 忽略深度值为0，和置信度为0的情况
                 if (depthInM == 0f || confidence == 0f)
+                {
+                    continue;
+                }
+
+                // 忽略深度值为0，和置信度小于< 阈值的情况
+                if (depthInM > distanceThreshold || confidence < confidenceValue)
                 {
                     continue;
                 }
@@ -259,6 +295,16 @@ public class PointCloudBlender : MonoBehaviour
                 byte confidenceByte = (byte)(confidence * 255f);
                 Color32 color = new Color32(rgb[0], rgb[1], rgb[2], confidenceByte);
 
+                //save
+                if(writer != null)
+                {
+                    // stringBuilder.AppendLine(vertex.x + " " + vertex.y + " " + vertex.z
+                    //+ " " + color.a + " " + color.r + " " + color.g + " " + color.b);
+                    writer.WriteLine(vertex.x + " " + vertex.y + " " + vertex.z
+                        + " " + color.a + " " + color.r + " " + color.g + " " + color.b);
+                }
+                //SaveCurrentPoint(vertex, color);
+
                 if (_verticesCount < maxCount - 1)
                 {
                     ++_verticesCount;
@@ -273,6 +319,23 @@ public class PointCloudBlender : MonoBehaviour
                 _vertices[_verticesIndex] = vertex;
                 _colors[_verticesIndex] = color;
                 ++_verticesIndex;
+            }
+        }
+
+        if (currentDataPath != null)
+        {
+            // 将数据从缓冲区写入文件
+            //writer.Write(stringBuilder.ToString());
+            writer.Flush(); // 确保数据被写入到文件中
+        }
+        else
+        {
+            if (writer != null)
+            {
+                //writer.Write(stringBuilder.ToString());
+                writer.Flush(); // 确保数据被写入到文件中
+                writer.Close();
+                writer = null;
             }
         }
 
@@ -330,32 +393,62 @@ public class PointCloudBlender : MonoBehaviour
         return new[] { r, g, b };
     }
 
+
+    //点云采集的实时保存路径
+    private string currentDataPath;
+    private StreamWriter writer;
+
+    public void StartCollect()
+    {
+
+#if DEBUG_LOG
+        AndroidUtils.Toast("StartCollect...");
+#endif
+        // 获取当前时间
+        DateTime currentTime = DateTime.Now;
+
+        // 格式化时间字符串，作为文件名的一部分
+        string fileName = "Data_" + currentTime.ToString("yyyy_MM_dd_HH_mm_ss") + ".pts";
+
+        string persistentDataPath = Application.persistentDataPath;
+        currentDataPath = Path.Combine(persistentDataPath, "PointCloud", fileName);
+        // 创建保存网格数据的文件夹
+        Directory.CreateDirectory(Path.GetDirectoryName(currentDataPath));
+
+        writer = new StreamWriter(currentDataPath,/*追加*/true);
+
+    }
+
+    public void StopCollect()
+    {
+        currentDataPath = null;
+
+#if DEBUG_LOG
+        AndroidUtils.Toast("StopCollect...");
+#endif
+    }
+
     /// <summary>
     /// 保存点云数据
     /// </summary>
     public void SavePointCloud()
     {
+#if DEBUG_LOG
+        AndroidUtils.Toast("saving...");
+#endif
         // 获取当前时间
         DateTime currentTime = DateTime.Now;
 
         // 格式化时间字符串，作为文件名的一部分
-        string fileName = "File_" + currentTime.ToString("yyyyMMdd_HHmmss");
+        string fileName = "Data_" + currentTime.ToString("yyyy_MM_dd_HH_mm_ss") + ".pts";
 
         string persistentDataPath = Application.persistentDataPath;
-        string filePath = persistentDataPath + "/PointCloud";
-        if (!Directory.Exists(filePath))
-        {
-            Directory.CreateDirectory(filePath);
-        }
-        filePath = filePath + "/" + fileName + ".pts";
+        string filePath = Path.Combine(persistentDataPath, "PointCloud", fileName);
+        // 创建保存网格数据的文件
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
         SavePointCloud(filePath);
 
-        //Mesh mesh = meshFilter.sharedMesh;
-        //// 保存 Mesh 数据到文件
-        ////SaveMeshToFile(mesh, filePath);
-
-        //string data = MeshToString(meshFilter, new Vector3(-1f, 1f, 1f));
-        //File.WriteAllText(filePath, data);
     }
 
 
@@ -363,49 +456,64 @@ public class PointCloudBlender : MonoBehaviour
     {
         if (meshFilter == null || meshFilter.sharedMesh == null)
         {
-            Debug.LogWarning("MeshFilter or Mesh not assigned.");
-            return;
+#if DEBUG_LOG
+            EqLog.e("PointCloudBlender", "MeshFilter or Mesh not assigned.");
+            AndroidUtils.Toast("MeshFilter or Mesh not assigned!");
+#endif
         }
 
         Mesh mesh = meshFilter.sharedMesh;
 
-        // 获取网格数据
+
+        //// 获取网格数据
         Vector3[] vertices = mesh.vertices;
-        //int[] triangles = mesh.triangles;//点云无需三角顶点索引，
+        ////int[] triangles = mesh.triangles;//点云无需三角顶点索引，
         Color[] colors = mesh.colors;
 
         int minCount = Math.Min(vertices.Length, colors.Length);
 
-        // 创建保存网格数据的文件
-        using (StreamWriter writer = new StreamWriter(filePath))
+        StringBuilder stringBuilder = new StringBuilder();
+        // 写入顶点数据
+        for (int i = 0; i < minCount; i++)
         {
-            //// 写入顶点数据
-            //foreach (Vector3 vertex in vertices)
-            //{
-            //    writer.WriteLine("v " + vertex.x + " " + vertex.y + " " + vertex.z);
-            //}
-
-            //// 颜色数据
-            //for (int i = 0; i < colors.Length; i++)
-            //{
-            //    Color c = colors[i];
-            //    writer.WriteLine("c " + c.r + " " + c.g + " " + c.b + " " + c.a);
-            //}
-
-            // 写入顶点数据
-            for (int i = 0; i < minCount; i++)
-            {
-                //PTS格式前三个是 （x，y，z） 坐标 其中，第四个是“强度”值，最后三个是“颜色值”（R，G，B） 
-                Vector3 vertex = vertices[i];
-                Color c = colors[i];
-                //这里暂用ALPHA表示强度值
-                writer.WriteLine(vertex.x + " " + vertex.y + " " + vertex.z
-                    + " " + (int)(c.a * 255) + " " + (int)(c.r * 255) + " " + (int)(c.g * 255) + " " + (int)(c.b * 255));
-            }
-
+            //PTS格式前三个是 （x，y，z） 坐标 其中，第四个是“强度”值，最后三个是“颜色值”（R，G，B） 
+            Vector3 vertex = vertices[i];
+            Color c = colors[i];
+            //这里暂用ALPHA表示强度值
+            //writer.WriteLine(vertex.x + " " + vertex.y + " " + vertex.z
+            //    + " " + (int)(c.a * 255) + " " + (int)(c.r * 255) + " " + (int)(c.g * 255) + " " + (int)(c.b * 255));
+            stringBuilder.AppendLine(vertex.x + " " + vertex.y + " " + vertex.z
+                + " " + (int)(c.a * 255) + " " + (int)(c.r * 255) + " " + (int)(c.g * 255) + " " + (int)(c.b * 255));
         }
 
-        Debug.Log("Mesh saved to " + filePath);
+
+        // 创建保存网格数据的文件
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+        using (StreamWriter wr = new StreamWriter(filePath, false))
+        {
+            wr.Write(stringBuilder.ToString());
+            wr.Flush();
+        }
+
+        //using (StreamWriter writer = new StreamWriter(filePath))
+        //{
+        //    //// 写入顶点数据
+        //    //foreach (Vector3 vertex in vertices)
+        //    //{
+        //    //    writer.WriteLine("v " + vertex.x + " " + vertex.y + " " + vertex.z);
+        //    //}
+
+        //    //// 颜色数据
+        //    //for (int i = 0; i < colors.Length; i++)
+        //    //{
+        //    //    Color c = colors[i];
+        //    //    writer.WriteLine("c " + c.r + " " + c.g + " " + c.b + " " + c.a);
+        //    //}
+        //}
+#if DEBUG_LOG
+        EqLog.d("PointCloudBlender", "Mesh saved to " + filePath);
+        AndroidUtils.Toast("success!");
+#endif
     }
 }
 

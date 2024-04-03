@@ -60,7 +60,7 @@ public class DepthSource : MonoBehaviour
     private static bool _updateConfidence;
     private static bool _alwaysUpdateDepth;
     private static bool _alwaysUpdateConfidence;
-    private static IDepthDataSource _depthDataSource;
+    public static IDepthDataSource _depthDataSource;
 
     private Camera _camera;
 
