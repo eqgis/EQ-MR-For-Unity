@@ -76,6 +76,7 @@ public class PointCloudWindow : EditorWindow
             return;
         }
 
+        EditorUtility.DisplayProgressBar("数据导入", "请稍候...", 0);
         // 读取文件内容
         string[] lines = File.ReadAllLines(filePath);
 
@@ -107,6 +108,8 @@ public class PointCloudWindow : EditorWindow
 
                 _indices[i] = i;
             }
+            float progress = (float)i / count;
+            EditorUtility.DisplayProgressBar("数据导入", "请稍候...", progress);
         }
 
 #if UNITY_2019_3_OR_NEWER
@@ -152,5 +155,6 @@ public class PointCloudWindow : EditorWindow
         AssetDatabase.Refresh();
 
         Debug.Log("PointCloud saved as asset: " + assetPath);
+        EditorUtility.ClearProgressBar();
     }
 }
