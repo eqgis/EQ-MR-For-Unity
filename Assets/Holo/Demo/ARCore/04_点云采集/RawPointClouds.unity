@@ -207,9 +207,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2088081392}
-        m_TargetAssemblyTypeName: MeshSaver, Assembly-CSharp
-        m_MethodName: Save
+      - m_Target: {fileID: 4870652938069884039}
+        m_TargetAssemblyTypeName: PointCloudBlender, Holo.Runtime
+        m_MethodName: SavePointCloud
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -352,7 +352,7 @@ RectTransform:
   - {fileID: 2096449519}
   - {fileID: 882911896}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -390,7 +390,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &696397397
 MonoBehaviour:
@@ -401,7 +401,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 696397395}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 88bdd2c16b7544ca7b78a1bc16804e89, type: 3}
+  m_Script: {fileID: 11500000, guid: 7a9e2b59e088ce54b86e52ccc7b602e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ReplacementMaterial: {fileID: 2100000, guid: 4b540a72bc76f46b883e5b14b2001377, type: 2}
@@ -415,7 +415,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 696397395}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f69d19ffc0f2fa349bc1ddc56edbff9, type: 3}
+  m_Script: {fileID: 11500000, guid: 78ecd2f0463e03b469137882a5cc6f48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   BackgroundMaterial: {fileID: 0}
@@ -644,7 +644,7 @@ RectTransform:
   - {fileID: 1942039381}
   - {fileID: 232201139}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -820,7 +820,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5342377574762407385, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5342377574762407385, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1334,51 +1334,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!1 &2088081391
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2088081393}
-  - component: {fileID: 2088081392}
-  m_Layer: 0
-  m_Name: "Mesh\u4FDD\u5B58"
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2088081392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2088081391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0c87ae9289df014e8fd15e3fba8f86e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  meshFilter: {fileID: 0}
---- !u!4 &2088081393
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2088081391}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 429.49518, y: -90.30011, z: 404.7005}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2096449518
 GameObject:
   m_ObjectHideFlags: 0
@@ -1584,3 +1539,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ec840fbc98845f14c8975337b8f83ddd, type: 3}
+--- !u!114 &4870652938069884039 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4870652939043474739, guid: ec840fbc98845f14c8975337b8f83ddd, type: 3}
+  m_PrefabInstance: {fileID: 4870652938069884038}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 545d61bf0aac2a544ba95df5e889d20b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
