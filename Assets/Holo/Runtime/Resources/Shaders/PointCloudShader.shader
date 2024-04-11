@@ -18,12 +18,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-Shader "ARRealism/PointCloudShader"
+Shader "EqAR/PointCloudShader"
 {
     Properties
     {
         _PointSize("Point size", Range(0, 0.2)) = 0.004
-        _ConfidenceThreshold("Confidence threshold", Range(0, 1.0)) = 0.9
     }
     SubShader
     {
@@ -41,7 +40,6 @@ Shader "ARRealism/PointCloudShader"
             #include "UnityCG.cginc"
 
             float _PointSize;
-            float _ConfidenceThreshold;
 
             struct v2g
             {
@@ -66,11 +64,7 @@ Shader "ARRealism/PointCloudShader"
             [maxvertexcount(4)]
             void geom (point v2g p[1], inout TriangleStream<g2f> triStream)
             {
-                // Filters out vertices that have lower confidence than the threshold.
-                if (p[0].color.a < 1.0f - _ConfidenceThreshold)
-                {
-                    return;
-                }
+                // Filters out vertices that have lower confidence than the threshold.(1.0f - _ConfidenceThreshold)
 
                 float3 up = float3(0, 1, 0);
                 float3 look = _WorldSpaceCameraPos - p[0].vertex;
