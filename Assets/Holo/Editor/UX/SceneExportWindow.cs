@@ -191,7 +191,7 @@ namespace Holo.XR.Editor.UX
                     //记录文件清单 2023年8月17日21:46:00
                     File.WriteAllText(cfgTmpPath, JsonMapper.ToJson(sceneEntity), new UTF8Encoding(false));
                     //生成加密数据
-                    DataIO.Copy(cfgTmpPath, cfgPath);
+                    DataIO.Copy(cfgTmpPath, cfgPath);//文件清单
 
                     //输出包添加cfg文件
                     sourceFileList.Add(cfgPath);
@@ -267,10 +267,16 @@ namespace Holo.XR.Editor.UX
             //根据输出路径创建AB包
             CreateAB(outputPath);
             //拷贝两个，一个
-            ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
+            //ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
+            //    parent + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName());
+
+            //ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName(),
+            //    parent + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName());
+            //不再对AB包进行加密
+            File.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName(),
                 parent + "/" + Holo.XR.Config.EditorConfig.GetHotUpdateAbName());
 
-            ExportUtils.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName(),
+            File.Copy(outputPath + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName(),
                 parent + "/" + Holo.XR.Config.EditorConfig.GetPreAssestName());
         }
 

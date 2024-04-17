@@ -22,6 +22,7 @@ namespace Holo.XR.Android
             }
 
 #if DEBUG_LOG
+            Debug.LogError(tag + " (e): " + msg);
             WriteLog(tag+ ":" + msg);
 #endif
         }
@@ -37,6 +38,7 @@ namespace Holo.XR.Android
                 logClass.CallStatic<int>("i", tag, msg);
             }
 #if DEBUG_LOG
+            Debug.Log(tag + " (i): " + msg);
             WriteLog(tag + ":" + msg);
 #endif
         }
@@ -52,6 +54,7 @@ namespace Holo.XR.Android
                 logClass.CallStatic<int>("d", tag, msg);
             }
 #if DEBUG_LOG
+            Debug.Log(tag + " (d): " + msg);
             WriteLog(tag + ":" + msg);
 #endif
         }
@@ -67,6 +70,7 @@ namespace Holo.XR.Android
                 logClass.CallStatic<int>("w", tag, msg);
             }
 #if DEBUG_LOG
+            Debug.LogWarning(tag + " (w): " + msg);
             WriteLog(tag + ":" + msg);
 #endif
         }

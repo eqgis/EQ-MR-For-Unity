@@ -179,13 +179,11 @@ namespace Holo.HUR
                 IEnumerator enumerator = null;
                 try
                 {
-                    byte[] data = DataIO.Read(dllPath, type.ToString());
-
                     switch (type)
                     {
                         case AssetsType.ASSETS_BUNDLE:
                             //加载AB包
-                            enumerator = AssetBundleManager.Instance.LoadAB(asset, data);
+                            enumerator = AssetBundleManager.Instance.LoadAB(asset, File.ReadAllBytes(dllPath));
 #if DEBUG_LOG
                             Debug.Log($"LoadAssetsBundle:{asset}");
 #endif
@@ -199,19 +197,20 @@ namespace Holo.HUR
                             HomologousImageMode mode = HomologousImageMode.SuperSet;
 
                             // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
-                            LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(data, mode);
+                            LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(
+                                DataIO.Read(dllPath, type.ToString()),
+                                mode);
 #if DEBUG_LOG
                             Debug.Log($"LoadMetadataForAOTAssembly:{asset}. mode:{mode} ret:{err}");
 #endif
                             break;
                         case AssetsType.HOT_UPDATE_ASSEMBLY:
-                            Assembly.Load(data);
+                            Assembly.Load(DataIO.Read(dllPath, type.ToString()));
 #if DEBUG_LOG
                             Debug.Log($"LoadHotUpdateAssembly:{asset}");
 #endif
                             break;
                     }
-                    data = null;
                 }
                 catch (Exception e)
                 {

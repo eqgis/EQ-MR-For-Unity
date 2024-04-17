@@ -103,7 +103,7 @@ namespace Holo.XR.Editor.Utils
                     continue;
                 }
                 string dllBytesPath = $"{aotAssembliesDstDir}/{dll}.dll.bytes";
-                Copy(srcDllPath, dllBytesPath);
+                Copy(srcDllPath, dllBytesPath);//AOTÔªÊý¾Ý
                 Debug.Log($"[CopyAOTAssembliesToStreamingAssets] copy AOT dll {srcDllPath} -> {dllBytesPath}");
             }
 #endif
