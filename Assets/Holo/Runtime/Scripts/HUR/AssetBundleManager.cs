@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -55,9 +56,17 @@ namespace Holo.Data
         /// 加载AB资源
         /// </summary>
         /// <param name="data">AB数据</param>
-        public void LoadAB(string name,byte[] data)
+        public IEnumerator LoadAB(string name,byte[] data)
         {
-            AssetBundle assetBundle = AssetBundle.LoadFromMemory(data);
+            //AssetBundle assetBundle = AssetBundle.LoadFromMemory(data);
+            //_bundles.Add(name, assetBundle);
+
+            // 异步加载AssetBundle
+            AssetBundleCreateRequest assetBundleCreateRequest = AssetBundle.LoadFromMemoryAsync(data);
+            yield return assetBundleCreateRequest;
+
+            // 获取加载完成的AssetBundle
+            AssetBundle assetBundle = assetBundleCreateRequest.assetBundle;
             _bundles.Add(name, assetBundle);
         }
 

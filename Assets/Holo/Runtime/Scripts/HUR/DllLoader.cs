@@ -88,26 +88,6 @@ namespace Holo.HUR
         /// </summary>
         public void StartReadData()
         {
-            //读取配置文件中的主场景名称
-            string cfgJsonPath = localFolderPath + XR.Config.HoloConfig.sceneConfig;
-            if (!File.Exists(cfgJsonPath))
-            {
-#if DEBUG
-                AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
-#endif
-            }
-            //读取配置资源路径，注意：若这之前读取过，AssetsPackageManager.Instance则不会再次读取
-            AssetsPackageManager apMgr = AssetsPackageManager.Instance;
-            apMgr.LoadSceneConfig(cfgJsonPath);
-            this.hotUpdateMainSceneName = apMgr.GetMainSceneName();
-            this.assetsBundleNameList = apMgr.GetAssetsBundleList();
-            this.hotUpdateAssemblyNameList = apMgr.GetHotUpdateAssemblies();
-            this.patchAOT_Assemblies = apMgr.GetAotMetaAssemblies();
-#if DEBUG_LOG
-            EqLog.d("DllLoader-Start-MainSceneName:", hotUpdateMainSceneName);
-#endif
-
-
             StartCoroutine(LoadAssets(this.OnLoadComplete));
         }
 
@@ -120,6 +100,33 @@ namespace Holo.HUR
         /// <returns></returns>
         private IEnumerator LoadAssets(Action onDownloadComplete)
         {
+            yield return LoadAsesstInBackground();
+            onDownloadComplete();
+        }
+
+        private IEnumerator LoadAsesstInBackground()
+        {
+            //读取配置文件中的主场景名称
+            string cfgJsonPath = localFolderPath + XR.Config.HoloConfig.sceneConfig;
+            if (!File.Exists(cfgJsonPath))
+            {
+#if DEBUG
+                AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
+#endif
+            }
+            //读取配置资源路径，注意：若这之前读取过，AssetsPackageManager.Instance则不会再次读取
+            AssetsPackageManager apMgr = AssetsPackageManager.Instance;
+            apMgr.LoadSceneConfig(cfgJsonPath);//LoadAssets
+            this.hotUpdateMainSceneName = apMgr.GetMainSceneName();
+            this.assetsBundleNameList = apMgr.GetAssetsBundleList();
+            this.hotUpdateAssemblyNameList = apMgr.GetHotUpdateAssemblies();
+            this.patchAOT_Assemblies = apMgr.GetAotMetaAssemblies();
+#if DEBUG_LOG
+            EqLog.d("DllLoader-Start-MainSceneName:", hotUpdateMainSceneName);
+#endif
+
+            /**==========开始加载资源==========**/
+            //总资源个数
             int max = patchAOT_Assemblies.Count + hotUpdateAssemblyNameList.Count + assetsBundleNameList.Count;
             //更新进度
             if (OnProgressUpdate != null)
@@ -132,55 +139,30 @@ namespace Holo.HUR
             foreach (var item in patchAOT_Assemblies)
             {
                 count++;
-                //更新进度
-                if (OnProgressUpdate != null)
-                {
-                    //OnProgressUpdate(count, max, item);
-                    OnProgressUpdate((float)count / max);
-                }
-
-                ReadDataFromPersistent(item + ".dll.bytes", AssetsType.AOT_META_ASSEMBLY);
+                yield return ReadDataFromPersistent(item + ".dll.bytes", AssetsType.AOT_META_ASSEMBLY,
+                    (float)count / max);
             }
 
             //热更DLL
             foreach (var item in hotUpdateAssemblyNameList)
             {
                 count++;
-                //更新进度
-                if (OnProgressUpdate != null)
-                {
-                    OnProgressUpdate((float)count / max);
-                }
-
-                ReadDataFromPersistent(item + ".dll.bytes", AssetsType.HOT_UPDATE_ASSEMBLY);
+                yield return ReadDataFromPersistent(item + ".dll.bytes", AssetsType.HOT_UPDATE_ASSEMBLY,
+                    (float)count / max);
             }
 
-
+            yield return null;
             foreach (var item in assetsBundleNameList)
             {
                 count++;
-                //更新进度
-                if (OnProgressUpdate != null)
-                {
-                    OnProgressUpdate((float)count / max);
-                }
-
-                ReadDataFromPersistent(item, AssetsType.ASSETS_BUNDLE);
+                yield return ReadDataFromPersistent(item, AssetsType.ASSETS_BUNDLE,
+                    (float)count / max);
             }
 
-
-            //进度100%
-            if (OnProgressUpdate != null)
-            {
-                OnProgressUpdate(1.0f);
-            }
-
-            onDownloadComplete();
-
-            yield return null;
+            yield break;
         }
 
-        private void ReadDataFromPersistent(string asset,AssetsType type)
+        private IEnumerator ReadDataFromPersistent(string asset, AssetsType type, float progress)
         {
 
 #if HYBIRDCLR_ENABLED
@@ -190,49 +172,63 @@ namespace Holo.HUR
 #if DEBUG_LOG
                 EqLog.w("DllLoader", "Could not find " + asset);
 #endif
-                return;
+                yield return null;
             }
-            try
+            else
             {
-                byte[] data = DataIO.Read(dllPath, type.ToString());
-
-                switch (type)
+                IEnumerator enumerator = null;
+                try
                 {
-                    case AssetsType.ASSETS_BUNDLE:
-                        //加载AB包
-                        AssetBundleManager.Instance.LoadAB(asset, data);
-#if DEBUG_LOG
-                        Debug.Log($"LoadAssetsBundle:{asset}");
-#endif
-                        break;
-                    case AssetsType.AOT_META_ASSEMBLY:
-                        //加载补充元数据
-                        /// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
-                        /// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
-                        /// 
+                    byte[] data = DataIO.Read(dllPath, type.ToString());
 
-                        HomologousImageMode mode = HomologousImageMode.SuperSet;
+                    switch (type)
+                    {
+                        case AssetsType.ASSETS_BUNDLE:
+                            //加载AB包
+                            enumerator = AssetBundleManager.Instance.LoadAB(asset, data);
+#if DEBUG_LOG
+                            Debug.Log($"LoadAssetsBundle:{asset}");
+#endif
+                            break;
+                        case AssetsType.AOT_META_ASSEMBLY:
+                            //加载补充元数据
+                            /// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
+                            /// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
+                            /// 
 
-                        // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
-                        LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(data, mode);
+                            HomologousImageMode mode = HomologousImageMode.SuperSet;
+
+                            // 加载assembly对应的dll，会自动为它hook。一旦aot泛型函数的native函数不存在，用解释器版本代码
+                            LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(data, mode);
 #if DEBUG_LOG
-                        Debug.Log($"LoadMetadataForAOTAssembly:{asset}. mode:{mode} ret:{err}");
+                            Debug.Log($"LoadMetadataForAOTAssembly:{asset}. mode:{mode} ret:{err}");
 #endif
-                        break;
-                    case AssetsType.HOT_UPDATE_ASSEMBLY:
-                        Assembly.Load(data);
+                            break;
+                        case AssetsType.HOT_UPDATE_ASSEMBLY:
+                            Assembly.Load(data);
 #if DEBUG_LOG
-                        Debug.Log($"LoadHotUpdateAssembly:{asset}");
+                            Debug.Log($"LoadHotUpdateAssembly:{asset}");
 #endif
-                        break;
+                            break;
+                    }
+                    data = null;
                 }
-                data = null;
-            }catch (Exception e)
-            {
-                EqLog.e("DllLoader",e.ToString());
+                catch (Exception e)
+                {
+                    EqLog.e("DllLoader", e.ToString());
+                }
+
+                yield return enumerator;
             }
-            
 #endif
+
+
+            //更新进度
+            if (OnProgressUpdate != null)
+            {
+                //OnProgressUpdate(count, max, item);
+                OnProgressUpdate(progress);
+            }
         }
 
 
