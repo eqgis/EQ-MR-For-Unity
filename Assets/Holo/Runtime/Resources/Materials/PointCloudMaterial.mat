@@ -27,6 +27,6 @@ Material:
     m_Ints: []
     m_Floats:
     - _InvFade: 1
-    - _PointSize: 0.009
+    - _PointSize: 0.006
     m_Colors: []
   m_BuildTextureStacks: []
