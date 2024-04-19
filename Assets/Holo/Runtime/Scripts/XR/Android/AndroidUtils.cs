@@ -7,6 +7,7 @@ namespace Holo.XR.Android
         private AndroidJavaClass unityPlayer;
         private AndroidJavaObject currentActivity;
         private AndroidJavaClass toast;
+        private AndroidJavaClass m_VibrateHelper;
         private static AndroidUtils instance = null;
 
         private AndroidUtils()
@@ -29,6 +30,10 @@ namespace Holo.XR.Android
             return instance;
         }
 
+        /// <summary>
+        /// 显示安卓Toast
+        /// </summary>
+        /// <param name="msg"></param>
         public static void Toast(string msg)
         {
             GetInstance().ShowToast(msg);
@@ -49,6 +54,37 @@ namespace Holo.XR.Android
              * 匿名方法中第二个参数是安卓上下文对象，除了用currentActivity，还可用安卓中的GetApplicationContext()获得上下文。
             AndroidJavaObject context = currentActivity.Call<AndroidJavaObject>("getApplicationContext");
             */
+        }
+
+        /// <summary>
+        /// 使设备震动
+        /// </summary>
+        /// <param name="pattern">震动形式</param>
+        /// <param name="repeate">震动的次数，-1不重复，非-1为从pattern的指定下标开始重复</param>
+        public static void vibrate(long[] pattern, int repeate)
+        {
+            AndroidUtils androidUtils = GetInstance();
+            if (androidUtils.m_VibrateHelper == null)
+            {
+                androidUtils.m_VibrateHelper = new AndroidJavaClass("com.eqgis.unity.utils.VibrateHelper");
+            }
+            androidUtils.m_VibrateHelper.CallStatic("vComplicated", 
+                androidUtils.currentActivity, pattern, repeate);
+        }
+
+        /// <summary>
+        /// 使设备震动
+        /// </summary>
+        /// <param name="millisecond">震动时长,单位毫秒</param>
+        public static void vibrate(int millisecond)
+        {
+            AndroidUtils androidUtils = GetInstance();
+            if (androidUtils.m_VibrateHelper == null)
+            {
+                androidUtils.m_VibrateHelper = new AndroidJavaClass("com.eqgis.unity.utils.VibrateHelper");
+            }
+            androidUtils.m_VibrateHelper.CallStatic("vSimple",
+                androidUtils.currentActivity, millisecond);
         }
 
         internal void Destroy()
