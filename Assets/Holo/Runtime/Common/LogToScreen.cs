@@ -7,7 +7,7 @@ public class LogToScreen : MonoBehaviour
 #if DEBUG_LOG
     public Color textColor = Color.white;
     const int maxLines = 50;
-    const int maxLineLength = 120;
+    const int maxLineLength = 50;
     private string _logStr = "";
 
     private readonly List<string> _lines = new List<string>();
