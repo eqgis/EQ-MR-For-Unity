@@ -62,12 +62,20 @@ namespace Holo.Data
             //_bundles.Add(name, assetBundle);
 
             // 异步加载AssetBundle
-            AssetBundleCreateRequest assetBundleCreateRequest = AssetBundle.LoadFromMemoryAsync(data);
-            yield return assetBundleCreateRequest;
+            if (!_bundles.ContainsKey(name))
+            {
+                //若之前已加载过同名ab包，则需先卸载
+                //_bundles[name].Unload(true);//卸载AB包，同时卸载实例
 
-            // 获取加载完成的AssetBundle
-            AssetBundle assetBundle = assetBundleCreateRequest.assetBundle;
-            _bundles.Add(name, assetBundle);
+                //同名直接跳过
+                AssetBundleCreateRequest assetBundleCreateRequest = AssetBundle.LoadFromMemoryAsync(data);
+                yield return assetBundleCreateRequest;
+
+                // 获取加载完成的AssetBundle
+                AssetBundle assetBundle = assetBundleCreateRequest.assetBundle;
+                _bundles[name] = assetBundle;
+            }
+
         }
 
         /// <summary>

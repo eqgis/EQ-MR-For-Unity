@@ -51,6 +51,8 @@ namespace Holo.HUR
         //热更时的主场景名称
         private string hotUpdateMainSceneName;
 
+        public event OnErrorDelegate OnError;
+
         private void Awake()
         {
             localFolderPath = Application.persistentDataPath + XR.Config.HoloConfig.hotUpdateDataFolder;
@@ -96,12 +98,12 @@ namespace Holo.HUR
         /// <summary>
         /// 加载资源
         /// </summary>
-        /// <param name="onDownloadComplete">资源加载完成后执行任务</param>
+        /// <param name="OnLoadComplete">资源加载完成后执行任务</param>
         /// <returns></returns>
-        private IEnumerator LoadAssets(Action onDownloadComplete)
+        private IEnumerator LoadAssets(Action onLoadComplete)
         {
             yield return LoadAsesstInBackground();
-            onDownloadComplete();
+            onLoadComplete.Invoke();
         }
 
         private IEnumerator LoadAsesstInBackground()
@@ -113,6 +115,8 @@ namespace Holo.HUR
 #if DEBUG
                 AndroidUtils.GetInstance().ShowToast("缺少热更数据包");
 #endif
+                OnError?.Invoke("[LoadAsesstInBackground] Data was null.");
+                yield break;
             }
             //读取配置资源路径，注意：若这之前读取过，AssetsPackageManager.Instance则不会再次读取
             AssetsPackageManager apMgr = AssetsPackageManager.Instance;
@@ -214,7 +218,8 @@ namespace Holo.HUR
                 }
                 catch (Exception e)
                 {
-                    EqLog.e("DllLoader", e.ToString());
+                    //注意，多次载入同名的dll会报错。 System.ExecutionEngineException: reloading placeholder assembly is not supported!
+                    EqLog.w("DllLoader", e.ToString());
                 }
 
                 yield return enumerator;
@@ -272,7 +277,7 @@ namespace Holo.HUR
             {
                 return hotUpdateMainSceneName;
             }
-            throw new NullReferenceException();
+            return null;
         }
     }
 

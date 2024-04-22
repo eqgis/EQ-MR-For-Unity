@@ -8,7 +8,13 @@ using UnityEngine.Events;
 using UnityEngine.Networking;
 
 namespace Holo.Data
-{
+{   
+    /// <summary>
+    /// 数据处理出错的委托事件
+    /// </summary>
+    /// <param name="message"></param>
+    public delegate void OnErrorDelegate(string message);
+
     /// <summary>
     /// 数据下载器
     /// </summary>
@@ -34,6 +40,8 @@ namespace Holo.Data
         /// 进度更新
         /// </summary>
         public event ProgressUpdateDelegate OnProgressUpdate;
+
+        public event OnErrorDelegate OnError;
 
         private void Awake()
         {
@@ -109,14 +117,9 @@ namespace Holo.Data
                 if (webRequest.isHttpError || webRequest.isNetworkError)
 #endif
                 {
-#if DEBUG_LOG
-                    if (Application.platform == RuntimePlatform.Android)
-                    {
-                        AndroidUtils.Toast("数据版本校验失败—请检查网络");
-                    }
-#endif
                     EqLog.e("DataDownLoader", "Error downloading file list: " + webRequest.error);
                     Debug.LogWarning("数据版本校验失败—网络连接异常或数据版本文件不存在");
+                    OnError?.Invoke(webRequest.error);
                 }
                 else
                 {
@@ -262,6 +265,7 @@ namespace Holo.Data
 #endif
                         Debug.LogWarning("数据清单获取失败—请检查网络");
                         EqLog.e("DataDownLoader", "Error downloading data: " + webRequest.error);
+                        OnError?.Invoke(webRequest.error);
                     }
                     else
                     {
