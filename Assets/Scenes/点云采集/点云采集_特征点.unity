@@ -377,7 +377,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ab0e80cee9cc1d44928bfe488dd1e2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_PointCloudPrefab: {fileID: 8213558897075423150, guid: e801e6d402f25f441b5e8d1ed6ba12dd, type: 3}
+  m_PointCloudPrefab: {fileID: 1617838262920344420, guid: 25a1c30c019f8894e81fb4f1453a4a43, type: 3}
 --- !u!4 &423734556 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1381197390765174161, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}

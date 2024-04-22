@@ -19,6 +19,8 @@ public class PrefabClickHandler : MonoBehaviour,IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        //Υπ¶―
+        AndroidUtils.vibrate(50);
 
 
 #if DEBUG_LOG

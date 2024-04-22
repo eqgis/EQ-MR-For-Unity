@@ -341,9 +341,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7660429504530183331, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8403467895180786779, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_Name
       value: ARCore Session
+      objectReference: {fileID: 0}
+    - target: {fileID: 8403467895180786779, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8403467895180786779, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
       propertyPath: m_TagString
@@ -356,6 +364,25 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1381197390765174161, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
   m_PrefabInstance: {fileID: 1001414870}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1001414872 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6000677639160089106, guid: 57a18fbfc5199ab43887350c6164fb8f, type: 3}
+  m_PrefabInstance: {fileID: 1001414870}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1001414873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001414872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1760703bbd54c04488a8d10600262ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PlanePrefab: {fileID: 0}
+  m_DetectionMode: 0
 --- !u!1 &1733736117
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,8 +412,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da8a10bfff1f9604a9b026981cc619d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textColor: {r: 0.29703632, g: 0.6837934, b: 0.8396226, a: 1}
-  fontSize: 24
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  fontSize: 15
 --- !u!4 &1733736119
 Transform:
   m_ObjectHideFlags: 0
