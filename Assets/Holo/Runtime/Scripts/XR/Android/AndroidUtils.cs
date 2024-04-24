@@ -63,6 +63,11 @@ namespace Holo.XR.Android
         /// <param name="repeate">震动的次数，-1不重复，非-1为从pattern的指定下标开始重复</param>
         public static void vibrate(long[] pattern, int repeate)
         {
+            if (Application.platform != RuntimePlatform.Android)
+            {
+                return;
+            }
+
             AndroidUtils androidUtils = GetInstance();
             if (androidUtils.m_VibrateHelper == null)
             {
@@ -78,6 +83,11 @@ namespace Holo.XR.Android
         /// <param name="millisecond">震动时长,单位毫秒</param>
         public static void vibrate(int millisecond)
         {
+            if (Application.platform != RuntimePlatform.Android)
+            {
+                return;
+            }
+
             AndroidUtils androidUtils = GetInstance();
             if (androidUtils.m_VibrateHelper == null)
             {
@@ -85,6 +95,32 @@ namespace Holo.XR.Android
             }
             androidUtils.m_VibrateHelper.CallStatic("vSimple",
                 androidUtils.currentActivity, millisecond);
+        }
+
+        /// <summary>
+        /// 重启应用
+        /// </summary>
+        public static void RestartApplication()
+        {
+            if (Application.platform != RuntimePlatform.Android)
+            {
+                return;
+            }
+
+            AndroidJavaClass androidToolKitClass = new AndroidJavaClass("com.eqgis.unity.AndroidToolkit");
+            androidToolKitClass.CallStatic("restartApplication", GetInstance().currentActivity);
+        }
+
+        public static void Quit()
+        {
+            //killProcess
+            if (Application.platform != RuntimePlatform.Android)
+            {
+                return;
+            }
+
+            AndroidJavaClass androidToolKitClass = new AndroidJavaClass("com.eqgis.unity.AndroidToolkit");
+            androidToolKitClass.CallStatic("killProcess", GetInstance().currentActivity);
         }
 
         internal void Destroy()

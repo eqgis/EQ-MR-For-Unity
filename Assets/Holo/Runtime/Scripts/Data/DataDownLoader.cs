@@ -87,13 +87,7 @@ namespace Holo.Data
         /// <param name="nextAction"></param>
         /// <returns></returns>
         private IEnumerator CheckDataVersion()
-        {
-#if DEBUG_LOG
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                AndroidUtils.Toast("checking data...");
-            }
-#endif           
+        {        
             //更新进度
             if (OnProgressUpdate != null)
             {
