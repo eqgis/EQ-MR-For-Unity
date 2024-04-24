@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 
 public class CameraController : MonoBehaviour
@@ -15,6 +16,8 @@ public class CameraController : MonoBehaviour
 
     public ShiftScript m_ARCoreSession;
     private bool m_MoveCamera = false;
+
+    private Canvas mUI_Canvas;
     
     //基准位置
     private Vector3 basePosition;
@@ -37,7 +40,7 @@ public class CameraController : MonoBehaviour
         {
 
             Touch touch;
-            if (Input.touchCount < 1 || (touch = Input.GetTouch(0)).phase != TouchPhase.Began)
+            if (Input.touchCount < 1 || (touch = Input.GetTouch(0)).phase != TouchPhase.Began || CheckGuiRaycastObjects())
             {
                 return;
             }
@@ -83,4 +86,21 @@ public class CameraController : MonoBehaviour
         m_MoveCamera = false;
     }
 
+
+    bool CheckGuiRaycastObjects()
+    {
+        if (!mUI_Canvas)
+        {
+            return false;
+        }
+
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.pressPosition = Input.mousePosition;//touch.position
+        eventData.position = Input.mousePosition;//touch.position
+
+        var results = new List<RaycastResult>();
+        mUI_Canvas.GetComponent<GraphicRaycaster>().Raycast(eventData, results);
+        //EventSystem.current.RaycastAll(eventData, results);   //使用此方式也可
+        return results.Count > 0;
+    }
 }

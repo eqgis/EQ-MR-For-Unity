@@ -7,13 +7,22 @@ public class MainSceneGUI : MonoBehaviour
     public GUISkin guiSkin;
 
 
-    Rect windowRect = new Rect(0, 0, 300, 200);
+    Rect windowRect = new Rect(0, 0, 600, 400);
     private bool show = true;
+
+
+    private GUIStyle m_TitleStyle;
 
     void Start()
     {
         windowRect.x = (Screen.width - windowRect.width) / 2;
         windowRect.y = (Screen.height - windowRect.height) / 2;
+
+        m_TitleStyle = new GUIStyle();
+        m_TitleStyle.alignment = TextAnchor.MiddleCenter;
+        m_TitleStyle.fontSize = 60;
+        m_TitleStyle.fontStyle = new FontStyle();
+        m_TitleStyle.normal.textColor = Color.white;
     }
 
 
@@ -21,8 +30,13 @@ public class MainSceneGUI : MonoBehaviour
     {
         if (show)
         {
+
+            //GUIStyle style = new GUIStyle();
+            //style.fontSize = 120;
+            //style.alignment = TextAnchor.MiddleCenter;
+            //style.normal.textColor = Color.white;
             GUI.skin = guiSkin;
-            windowRect = GUI.Window(0, windowRect, DoMyWindow, "提示");
+            windowRect = GUI.Window(0, windowRect, DoMyWindow, "");
         }
     }
 
@@ -31,10 +45,13 @@ public class MainSceneGUI : MonoBehaviour
     void DoMyWindow(int windowID)
     {
 
-        GUI.Label(new Rect(40, 40, 200, 40), "1、移动设备进行图片识别");
-        GUI.Label(new Rect(40, 90, 200, 40), "2、点击模型载入对应场景");
-        
-        if (GUI.Button(new Rect(60, 140, 200, 60), "确定"))
+        GUIStyle style = new GUIStyle();
+        style.fontSize = 40;
+        style.alignment = TextAnchor.MiddleCenter;
+        GUI.Label(new Rect(0, 20, 600, 100), "提示",m_TitleStyle);
+        GUI.Label(new Rect(0, 100, 800, 100), "2、点击模型载入对应场景", style);
+
+        if (GUI.Button(new Rect(450, 100, 200, 60), "关闭"))
         {
             show = false;
         }

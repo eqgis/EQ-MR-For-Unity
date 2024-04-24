@@ -53,6 +53,22 @@ public class HotFixDataMgr : MonoBehaviour
         //数据处理失败时触发
         dataDownLoader.OnError += HandleError;
         dllLoader.OnError += HandleError;
+
+        //进度更新
+        dllLoader.OnProgressUpdate += HandleProgressFromDllLoader;
+        dataDownLoader.OnProgressUpdate += HandleProgressFromDataDownLoader;
+    }
+
+    private void HandleProgressFromDataDownLoader(float progress)
+    {
+        int pro = (int)(progress * 100);
+        Debug.Log("数据同步进度：  " + pro + " %");
+    }
+
+    private void HandleProgressFromDllLoader(float progress)
+    {
+        int pro = (int)(progress * 100);
+        Debug.Log("数据加载进度：  " + pro + " %");
     }
 
     private void Start()
@@ -68,7 +84,7 @@ public class HotFixDataMgr : MonoBehaviour
     {
         if(m_Status != Status.READY)
         {
-            AndroidUtils.Toast("数据未就绪！");
+            AndroidUtils.Toast("数据加载中，请稍候...");
             return;
         }
 
@@ -88,6 +104,12 @@ public class HotFixDataMgr : MonoBehaviour
     /// </summary>
     public void UpdateData()
     {
+        if (m_Status != Status.READY)
+        {
+            AndroidUtils.Toast("程序未就绪，请稍后再试！");
+            return;
+        }
+
         _logStr = "";
         if (dataDownLoader != null)
         {
@@ -99,45 +121,11 @@ public class HotFixDataMgr : MonoBehaviour
             //开始数据下载
             dataDownLoader.StartDownload();
         }
-#if UNITY_EDITOR
+
         Debug.Log("开始更新");
-#endif
-    }
-
-
-
-    private void OnGUI()
-    {
-        if (m_Status == Status.READY)
-        {
-            return;
-        }
-
-        GUI.skin = skin;
-        windowRect = GUI.Window(0, windowRect, DrawWindow, "Loading...");
-
-
 
     }
 
-    Vector2 scrollPosition = Vector2.zero;
-    float hSbarValue;
-    float vSbarValue;
-
-    private void DrawWindow(int id)
-    {
-
-        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,
-            new Vector3(Screen.width / 1200.0f, Screen.height / 800.0f, 1.0f));
-        GUIStyle style = new GUIStyle() { fontSize = Math.Max(10, fontSize) };
-        style.normal.textColor = textColor;
-
-        scrollPosition = GUI.BeginScrollView(windowRect, scrollPosition, new Rect(0, 0, 220, 200));
-        
-        GUI.Label(new Rect(150, 100, windowRect.width - 20, windowRect.height - 200), _logStr, style);
-
-        GUI.EndScrollView();
-    }
 
     #region 内部方法
     private void LoadDllCompleted()
@@ -171,15 +159,18 @@ public class HotFixDataMgr : MonoBehaviour
 
     private IEnumerator ReloadThisScene()
     {
-        AndroidUtils.Toast("更新完成！");
+        AndroidUtils.Toast("更新完成，重启中...");
         yield return new WaitForSeconds(1.0f);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        //改用直接重启应用的方式，因为AB包和dll无法在一个进程中重复添加，
+        //因此即使场景重启，数据也未重新载入。因此改用直接重启安卓应用
+        AndroidUtils.RestartApplication();
     }
     #endregion
 
-
+    #region Log Info
     public Color textColor = Color.white;
-    const int maxLines = 30;
+    const int maxLines = 3;
     const int maxLineLength = 50;
     private string _logStr = "";
 
@@ -223,4 +214,29 @@ public class HotFixDataMgr : MonoBehaviour
         _logStr = string.Join("\n", _lines);
     }
 
+
+    private void OnGUI()
+    {
+        if (m_Status == Status.READY)
+        {
+            return;
+        }
+
+        GUI.skin = skin;
+        windowRect = GUI.Window(0, windowRect, DrawWindow, "");
+
+    }
+
+    private void DrawWindow(int id)
+    {
+
+        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,
+            new Vector3(Screen.width / 1200.0f, Screen.height / 800.0f, 1.0f));
+        GUIStyle style = new GUIStyle() { fontSize = Math.Max(10, fontSize) };
+        style.normal.textColor = textColor;
+
+
+        GUI.Label(new Rect(150, 100, windowRect.width - 20, windowRect.height - 200), _logStr, style);
+    }
+    #endregion
 }
