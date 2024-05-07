@@ -15,7 +15,6 @@ namespace Holo.XR.Editor.Utils
         {
             CreateObject("Prefabs/ARCore/ARCore Session").tag = CheckTag(MR_SystemTag);
         }
-
     }
 
 }

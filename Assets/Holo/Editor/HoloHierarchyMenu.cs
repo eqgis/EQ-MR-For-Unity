@@ -34,6 +34,14 @@ namespace Holo.XR.Editor
 
 
 #endif
+        [MenuItem("GameObject/Holo/SceneNode", false, 13)]
+        static void CreateSceneNode(MenuCommand menuCommand)
+        {
+            if (!BaseCreator.CreateSceneNode())
+            {
+                Debug.LogWarning("SceneNode 已存在，请勿重复创建");
+            }
+        }
 
         [MenuItem("GameObject/Holo/ExSceneTransition", false, 14)]
         static void JumpSceneController(MenuCommand menuCommand)

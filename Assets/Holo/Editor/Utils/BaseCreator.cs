@@ -35,6 +35,29 @@ namespace Holo.XR.Editor.Utils
         }
 
         /// <summary>
+        /// 创建场景节点
+        /// </summary>
+        /// <returns>若场景中已存在，则返回false。若新建成功，则返回true</returns>
+        public static bool CreateSceneNode()
+        {
+            string tag = CheckTag(SceneNodeTag);
+            GameObject sceneNodeObj = GameObject.FindGameObjectWithTag(SceneNodeTag);
+            GameObject mapObj;
+            if (sceneNodeObj == null)
+            {
+                sceneNodeObj = new GameObject(SceneNodeTag);
+                sceneNodeObj.tag = tag;
+
+                mapObj = new GameObject("Holo XR World");
+                sceneNodeObj.transform.parent = mapObj.transform;
+                return true;
+            }
+
+            //已存在，返回false
+            return false;
+        }
+
+        /// <summary>
         /// 创建游戏对象
         /// </summary>
         /// <param name="path">Resrouce路径下的预制件</param>
