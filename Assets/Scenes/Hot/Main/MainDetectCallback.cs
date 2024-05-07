@@ -23,7 +23,7 @@ public class MainDetectCallback : DetectCallback
 
         //prefab的预制件是第一个子元素
         UnityEngine.GameObject prefab = image.GetPrefab();
-        if (prefab != null)
+        if (prefab != null && GetImageDataMatcher() != null)
         {
             //若没有点击事件的组件，则添加
             if (!prefab.GetComponent<PrefabClickHandler>())
@@ -33,6 +33,7 @@ public class MainDetectCallback : DetectCallback
                 //先进行数据匹配，再传入数据
                 prefabClickHandler.sceneName = GetImageDataMatcher().Match(image.name);
                 prefabClickHandler.jumpSceneController = jumpSceneController;
+                prefabClickHandler.imageInfo = image;
 
                 //初次添加事件时，同时添加提示
 

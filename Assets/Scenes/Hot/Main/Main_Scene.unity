@@ -148,15 +148,15 @@ MonoBehaviour:
   m_Images:
   - m_Texture: {fileID: 2800000, guid: e7dfba9e2e7691e46ae10a816fd50923, type: 3}
     m_Name: vr-scene
-    m_Width: 0.1
+    m_Width: 0.2
     prefab: {fileID: 122154, guid: d4f969f6a5eb78c46be5f1beda69b9e9, type: 3}
   - m_Texture: {fileID: 2800000, guid: b3493f8b09a99574b96cb18a7c801cb2, type: 3}
     m_Name: mini_kids
-    m_Width: 0.1
+    m_Width: 0.2
     prefab: {fileID: 6471094660947182497, guid: 7bacd96ffd9091542b330823bd63da55, type: 3}
   - m_Texture: {fileID: 2800000, guid: d1879707d69d24adfb421bde69c92c94, type: 3}
     m_Name: one
-    m_Width: 0.1
+    m_Width: 0.2
     prefab: {fileID: 1922519436370590602, guid: 057c633d3b00f6b46a86d8f438896565, type: 3}
   loadComplete:
     m_PersistentCalls:
@@ -645,6 +645,7 @@ MonoBehaviour:
   auto: 0
   fade: 1
   fadeSpeed: 1
+  resetPoseInStart: 1
 --- !u!4 &1782176639
 Transform:
   m_ObjectHideFlags: 0
