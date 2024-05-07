@@ -1,4 +1,5 @@
 using Holo.XR.Android;
+using Holo.XR.Detect;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -32,6 +33,9 @@ namespace Holo.XR.Core
         public float fadeSpeed = 1.0f;
         private float alpha = 1f;
         private int fadeDir = -1;
+
+        [Header("Paras"),Tooltip("Start时，是否重置位姿(建议在识别图片进行定位的流程中启用)")]
+        public bool resetPoseInStart = false;
 
         private void OnEnable()
         {
@@ -67,6 +71,17 @@ namespace Holo.XR.Core
                 DontDestroyOnLoad(uiRaycastCamera);
             }
 
+            if (resetPoseInStart)
+            {
+                //重置Node的位姿
+                NodePoseRecorder nodePoseRecorder = NodePoseRecorder.GetInstance();
+
+                //记录下一个场景节点，相对于初始场景节点的相对位置。这里在Start时重置，可以避免多个场景切换后，位姿累加
+                nodePoseRecorder.NextSceneNodePosition = Vector3.zero;
+                nodePoseRecorder.NextSceneNodeRotation = Vector3.zero;
+
+            }
+
             if (auto)
             {
                 Invoke("ToNewScene", 0F);
@@ -79,6 +94,26 @@ namespace Holo.XR.Core
         /// <param name="sceneName">目标场景名称</param>
         public void LoadScene(string sceneName)
         {
+            this.sceneName = sceneName;
+            LoadScene();
+        }
+
+        /// <summary>
+        /// 跳转至新场景
+        /// </summary>
+        /// <param name="sceneName">目标场景名称</param>
+        /// <param name="imageInfo">AR图像信息</param>
+        public void LoadScene(string sceneName, ARImageInfo imageInfo)
+        {
+            //更新场景切换控制器的transform，这里采用图片的transform。
+            //那么在场景切换后，则下一场景的原点则以image为原点。
+            //（需要与NodePoseRecorder结合使用）注意：在流程中，若是新场景重新创建了ARSession,则这里需要减去之前的相机位姿
+            //已知：在当前流程中，并不会新建ARSession
+            //需要特别注意的是：用于识别的图片的width一定要与ARCoreImageDetector设置的尺寸一样
+            nextSceneNodeTransform.position = imageInfo.transform.position;
+
+            nextSceneNodeTransform.eulerAngles = imageInfo.transform.eulerAngles;
+
             this.sceneName = sceneName;
             LoadScene();
         }

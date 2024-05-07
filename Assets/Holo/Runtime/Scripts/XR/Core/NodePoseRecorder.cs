@@ -29,6 +29,18 @@ namespace Holo.XR.Core
         }
 
         /// <summary>
+        /// 重置记录器
+        /// </summary>
+        public void Reset()
+        {
+            nextSceneNodeRotation = Vector3.zero;
+            nextSceneNodePosition = Vector3.zero;
+
+            lastSceneNodeRotation = Vector3.zero;
+            lastSceneNodePosition = Vector3.zero;
+        }
+
+        /// <summary>
         /// 节点相对位置
         /// </summary>
         public Vector3 NextSceneNodeRotation { get => nextSceneNodeRotation; set => nextSceneNodeRotation = value; }
