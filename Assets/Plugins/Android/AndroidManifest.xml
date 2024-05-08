@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <application>
         <activity android:name="com.eqgis.unity.EqSplashActivity"
+                  android:screenOrientation="landscape"
                   android:theme="@style/UnityThemeSelector">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

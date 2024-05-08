@@ -169,7 +169,6 @@ namespace Holo.HUR
         private IEnumerator ReadDataFromPersistent(string asset, AssetsType type, float progress)
         {
 
-#if HYBIRDCLR_ENABLED
             string dllPath = localFolderPath + asset;
             if (!File.Exists(dllPath))
             {
@@ -193,6 +192,7 @@ namespace Holo.HUR
 #endif
                             break;
                         case AssetsType.AOT_META_ASSEMBLY:
+#if HYBIRDCLR_ENABLED
                             //加载补充元数据
                             /// 注意，补充元数据是给AOT dll补充元数据，而不是给热更新dll补充元数据。
                             /// 热更新dll不缺元数据，不需要补充，如果调用LoadMetadataForAOTAssembly会返回错误
@@ -206,6 +206,8 @@ namespace Holo.HUR
                                 mode);
 #if DEBUG_LOG
                             Debug.Log($"LoadMetadataForAOTAssembly:{asset}. mode:{mode} ret:{err}");
+#endif
+
 #endif
                             break;
                         case AssetsType.HOT_UPDATE_ASSEMBLY:
@@ -224,7 +226,6 @@ namespace Holo.HUR
 
                 yield return enumerator;
             }
-#endif
 
 
             //更新进度
@@ -273,7 +274,7 @@ namespace Holo.HUR
         /// <returns>入口场景名称</returns>
         public string getEntrance()
         {
-            if(hotUpdateMainSceneName != string.Empty)
+            if (hotUpdateMainSceneName != string.Empty)
             {
                 return hotUpdateMainSceneName;
             }

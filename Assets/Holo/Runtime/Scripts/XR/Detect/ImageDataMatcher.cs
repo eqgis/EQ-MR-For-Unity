@@ -1,4 +1,3 @@
-#if ENGINE_ARCORE
 using UnityEngine;
 using System.Collections.Generic;
 using System;
@@ -127,7 +126,7 @@ namespace Holo.XR.Detect
 
                 //检查数据是否变化
                 ImageData[] imageDatas = detector.GetImageData();
-                if (HasLibraryChanged(imageDatas)) 
+                if (HasLibraryChanged(imageDatas))
                 {
                     var tempDictionary = new Dictionary<string, string>();
                     foreach (var imageData in imageDatas)
@@ -191,4 +190,3 @@ namespace Holo.XR.Detect
 
     //namespace========
 }
-#endif

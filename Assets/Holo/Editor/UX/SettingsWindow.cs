@@ -1,4 +1,5 @@
 using Holo.HUR;
+using Holo.XR.Editor.Installer;
 using Holo.XR.Editor.Utils;
 using LitJson;
 using System;
@@ -11,6 +12,20 @@ namespace Holo.XR.Editor.UX
 {
     public class SettingsWindow : EditorWindow
     {
+        #region Other
+        //在Unity菜单中创建一个菜单路径用于设置宏定义
+        [MenuItem("Holo-XR/Settings")]
+        public static void Setting()
+        {
+            //Rect windowRect = new Rect(100, 100, 240, 180);
+            //SettingsWindow win = EditorWindow.GetWindowWithRect<SettingsWindow>(windowRect, false, "Holo-Settings");
+            SettingsWindow win = EditorWindow.GetWindow<SettingsWindow>(false, "Holo-Settings");
+            //win.titleContent = new GUIContent("全局设置");
+            win.Show();
+        }
+
+        #endregion
+
         private List<MacorItem> m_List = new List<MacorItem>();
 
         private Dictionary<string, bool> m_Dic = new Dictionary<string, bool>();
@@ -78,10 +93,10 @@ namespace Holo.XR.Editor.UX
             EditorGUILayout.BeginHorizontal("box");
             m_Dic[m_List[0].Name] = GUILayout.Toggle(m_Dic[m_List[0].Name], m_List[0].DisplayName);
 
-            if (GUILayout.Button("Install HybirdCLR", GUILayout.Width(120)))
-            {
-                HybridCLRInstaller.Import();
-            }
+            //if (GUILayout.Button("Install HybirdCLR", GUILayout.Width(120)))
+            //{
+            //    HybridCLRInstaller.Import();
+            //}
 
             EditorGUILayout.EndHorizontal();
 
@@ -97,10 +112,10 @@ namespace Holo.XR.Editor.UX
             GUILayout.Label("平台选择:", EditorStyles.boldLabel);
 
             //一键安装ARCore，从本地引入
-            if (GUILayout.Button("Install ARCore", GUILayout.Width(120)))
-            {
-                ARCoreInstaller.Import();
-            }
+            //if (GUILayout.Button("Install ARCore", GUILayout.Width(120)))
+            //{
+            //    ARCoreInstaller.Import();
+            //}
 
             EditorGUILayout.BeginHorizontal("box");
             for (int i = 3; i < m_List.Count; i++)

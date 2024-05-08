@@ -1,11 +1,10 @@
-using Holo.XR.Editor.UX;
-using Holo.XR.Utils;
+using Eqgis.Utils;
 using System.IO;
 using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
-namespace Holo.XR.Editor.Utils
+namespace Eqgis.Editor
 { 
     class ARCoreInstaller
     {
@@ -19,7 +18,7 @@ namespace Holo.XR.Editor.Utils
 
             //"./Assets"
             string dataPath = Application.dataPath;
-            string arcoreExtensions = dataPath + "/Holo/Editor/3rds/arcore_extensions";
+            string arcoreExtensions = dataPath + "/Eqgis/Editor/3rds/arcore_extensions";
             string targetPath = dataPath + "/../Packages";
             if (unZip(arcoreExtensions, targetPath))
             {

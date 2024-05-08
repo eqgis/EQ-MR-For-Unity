@@ -17,7 +17,7 @@
 //
 // </copyright>
 //-----------------------------------------------------------------------
-
+#if ENGINE_ARCORE
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -157,3 +157,5 @@ public class ShadowReceiverMesh : MonoBehaviour
         _material.SetTexture("_CurrentDepthTexture", DepthSource.DepthTexture);
     }
 }
+
+#endif

@@ -421,6 +421,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c345d039c9275d499fa6df2a8015f92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isHorizontal: 1
 --- !u!1001 &762200942
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -438,7 +439,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4746336025062485525, guid: 0945f5c1f02779e418200ad247c092e1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.12
+      value: -0.92
       objectReference: {fileID: 0}
     - target: {fileID: 4746336025062485525, guid: 0945f5c1f02779e418200ad247c092e1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -968,7 +969,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1840730253
 Transform:
   m_ObjectHideFlags: 0

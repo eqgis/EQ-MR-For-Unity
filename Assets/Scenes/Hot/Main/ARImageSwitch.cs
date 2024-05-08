@@ -1,3 +1,4 @@
+#if ENGINE_ARCORE
 using Holo.XR.Detect;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ public class ARImageSwitch : MonoBehaviour
 {
     public ARCoreImageDetector detector;
 
-     void OnDisable()
+    void OnDisable()
     {
         detector.m_TrackedImageManager.enabled = false;
         detector.enabled = false;
@@ -18,3 +19,4 @@ public class ARImageSwitch : MonoBehaviour
         detector.enabled = true;
     }
 }
+#endif

@@ -1,11 +1,13 @@
-#if ENGINE_ARCORE
 using Holo.XR.Android;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+
+#if ENGINE_ARCORE
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+#endif
 
 namespace Holo.XR.Detect
 {
@@ -57,22 +59,24 @@ namespace Holo.XR.Detect
             set => m_Width = value;
         }
 
+#if ENGINE_ARCORE
         public AddReferenceImageJobState jobState { get; set; }
+#endif
     }
 
 
     public class ARCoreImageDetector : MonoBehaviour
     {
 
-
+#if ENGINE_ARCORE
         [Header("ARTrackedImageManager")]
         public ARTrackedImageManager m_TrackedImageManager;
+#endif
 
-       
         [Header("ImageTracking Event")]
         public DetectCallback detectCallback;
 
-        private Dictionary<string,ARImageInfo> m_ImageDic = new Dictionary<string, ARImageInfo>();
+        private Dictionary<string, ARImageInfo> m_ImageDic = new Dictionary<string, ARImageInfo>();
 
         [Tooltip("场景启动时自动载入图片数据库")]
         public bool autoLoadImage = true;
@@ -86,7 +90,7 @@ namespace Holo.XR.Detect
         [SerializeField, Tooltip("添加图片数据")]
         ImageData[] m_Images;
 
-        [Header("When Image Load Completed"),Tooltip("图像数据库更新完成时执行以下事件")]
+        [Header("When Image Load Completed"), Tooltip("图像数据库更新完成时执行以下事件")]
         public UnityEvent loadComplete;
 
         //预设对象的dic
@@ -97,9 +101,10 @@ namespace Holo.XR.Detect
 
         private ARImageDataState m_State = ARImageDataState.NoImagesAdded;
 
+#if ENGINE_ARCORE
         //AR相机管理器，在ARCamera对象上
         private ARCameraManager m_CameraManager;
-
+#endif
 
         /// <summary>
         /// 获取图像数据
@@ -107,6 +112,7 @@ namespace Holo.XR.Detect
         /// <returns></returns>
         public ImageData[] GetImageData() { return m_Images; }
 
+#if ENGINE_ARCORE
         void Awake()
         {
             if (m_TrackedImageManager == null)
@@ -197,14 +203,14 @@ namespace Holo.XR.Detect
 
                 //创建预制件
                 CreatePrefab(aRImageInfo);
-                Callback(trackedImage, aRImageInfo,0);
+                Callback(trackedImage, aRImageInfo, 0);
             }
 
             //updated 后续识别到，会一直处于updateed
             foreach (var trackedImage in eventArgs.updated)
             {
                 //更新信息，包含位姿等属性信息
-                Callback(trackedImage, UpdateInfo(trackedImage),1);
+                Callback(trackedImage, UpdateInfo(trackedImage), 1);
             }
 
             ////removed
@@ -259,7 +265,7 @@ namespace Holo.XR.Detect
                     EqLog.d("ARCoreImageDetect ", "Instantiate:"
                         + trackedImage.name + " prefabsDic:" + m_PrefabsDictionary.Count
                         + " m_Instantiated.count:" + m_Instantiated.Count
-                        + " prefabName:"+prefab.name);
+                        + " prefabName:" + prefab.name);
 #endif
                 }
                 catch (Exception ex)
@@ -270,7 +276,7 @@ namespace Holo.XR.Detect
             }
         }
 
-        private void Callback(ARTrackedImage trackedImage,ARImageInfo imageInfo,int type)
+        private void Callback(ARTrackedImage trackedImage, ARImageInfo imageInfo, int type)
         {
             if (detectCallback != null)
             {
@@ -346,7 +352,6 @@ namespace Holo.XR.Detect
 
             return imageInfo;
         }
-
 
 
         /// <summary>
@@ -470,7 +475,8 @@ namespace Holo.XR.Detect
                             break;
                         }
                 }
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 EqLog.w("ARCoreImageDetector", e.Message);
             }
@@ -522,6 +528,8 @@ namespace Holo.XR.Detect
             return myTexture2D;
         }
         //end
+
+#endif
     }
 
 
@@ -567,5 +575,3 @@ namespace Holo.XR.Detect
     //}
 
 }
-
-#endif

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if ENGINE_ARCORE
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -137,3 +138,4 @@ namespace UnityEngine.XR.ARFoundation.Samples
         }
     }
 }
+#endif

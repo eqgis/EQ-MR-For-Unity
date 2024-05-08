@@ -117,11 +117,11 @@ namespace Holo.XR.Editor
         }
 
 
-        [MenuItem("Holo-XR/HotUpdate/Import HybridCLR", false, 301)]
-        static void InstallHybirdCLR()
-        {
-            HybridCLRInstaller.Import();
-        }
+        //[MenuItem("Holo-XR/HotUpdate/Import HybridCLR", false, 301)]
+        //static void InstallHybirdCLR()
+        //{
+        //    HybridCLRInstaller.Import();
+        //}
 
 #if HYBIRDCLR_ENABLED
 
@@ -167,18 +167,5 @@ namespace Holo.XR.Editor
         }
         #endregion
 
-        #region Other
-        //在Unity菜单中创建一个菜单路径用于设置宏定义
-        [MenuItem("Holo-XR/Settings")]
-        public static void Setting()
-        {
-            //Rect windowRect = new Rect(100, 100, 240, 180);
-            //SettingsWindow win = EditorWindow.GetWindowWithRect<SettingsWindow>(windowRect, false, "Holo-Settings");
-            SettingsWindow win = EditorWindow.GetWindow<SettingsWindow>(false, "Holo-Settings");
-            //win.titleContent = new GUIContent("全局设置");
-            win.Show();
-        }
-
-        #endregion
     }
 }

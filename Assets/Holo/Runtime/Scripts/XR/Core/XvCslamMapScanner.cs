@@ -1,8 +1,8 @@
 
 using AOT;
+using Eqgis.Utils;
 using Holo.XR.Android;
 using Holo.XR.Config;
-using Holo.XR.Utils;
 
 #if ENGINE_XVISIO
 using LitJson;

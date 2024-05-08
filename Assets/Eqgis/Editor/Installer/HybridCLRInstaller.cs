@@ -1,18 +1,12 @@
-using Holo.XR.Editor.UX;
-using Holo.XR.Utils;
 using System.IO;
 using UnityEditor;
-using UnityEditor.PackageManager.Requests;
-using UnityEditor.PackageManager;
-using UnityEditorInternal;
 using UnityEngine;
 using System.Threading;
-using System;
-using System.Reflection;
+using Eqgis.Utils;
 
-namespace Holo.XR.Editor.Utils
+namespace Eqgis.Editor
 {
-    class HybridCLRInstaller
+    public class HybridCLRInstaller
     {
         internal static void Import()
         {
@@ -32,7 +26,7 @@ namespace Holo.XR.Editor.Utils
 
             //"./Assets"
             string dataPath = Application.dataPath;
-            string hybridPath = dataPath + "/Holo/Editor/3rds/hybridclr";
+            string hybridPath = dataPath + "/Eqgis/Editor/3rds/hybridclr";
             string clrTargetPath = dataPath + "/../Packages";
             if (unZip(hybridPath, clrTargetPath))
             {
@@ -42,7 +36,7 @@ namespace Holo.XR.Editor.Utils
                 UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
                 //PopWindow.Show("HybridCLR 导入完成!\n请执行 HybridCLR->Installer...", 200, 80);
 
-                string il2cppPath = dataPath + "/Holo/Editor/3rds/libil2cpp";
+                string il2cppPath = dataPath + "/Eqgis/Editor/3rds/libil2cpp";
                 string targetPath = dataPath + "/../HybridCLRData/il2cpp_local";
                 if (unZip(il2cppPath,targetPath))
                 {

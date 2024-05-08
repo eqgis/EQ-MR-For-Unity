@@ -3,13 +3,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 using Holo.XR.Editor.Utils;
-using Holo.XR.Utils;
 using Holo.Data;
 using LitJson;
 using System.Text;
 using Holo.HUR;
 using System.Linq;
 using System;
+using Eqgis.Utils;
 
 namespace Holo.XR.Editor.UX
 {

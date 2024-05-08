@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class MainDetectCallback : DetectCallback
 {
-    public ExSceneTransition jumpSceneController;
+    public ExSceneTransition sceneTransition;
     public TipsUI tipsUI;
 
     /// <summary>
@@ -32,7 +32,7 @@ public class MainDetectCallback : DetectCallback
                 PrefabClickHandler prefabClickHandler = prefab.AddComponent<PrefabClickHandler>();
                 //先进行数据匹配，再传入数据
                 prefabClickHandler.sceneName = GetImageDataMatcher().Match(image.name);
-                prefabClickHandler.jumpSceneController = jumpSceneController;
+                prefabClickHandler.mSceneTransition = sceneTransition;
                 prefabClickHandler.imageInfo = image;
 
                 //初次添加事件时，同时添加提示
