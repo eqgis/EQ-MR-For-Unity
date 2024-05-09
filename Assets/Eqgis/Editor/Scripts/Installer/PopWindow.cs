@@ -9,7 +9,7 @@ namespace Eqgis.Editor
     /// <summary>
     /// Ã· æƒ⁄»›µØ¥∞
     /// </summary>
-    public class PopWindow : EditorWindow
+    internal class PopWindow : EditorWindow
     {
         public static string msg;
 

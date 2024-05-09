@@ -1,15 +1,11 @@
 {
-    "name": "Holo.Runtime",
+    "name": "Holo.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:13ba8ce62aa80c74598530029cb2d649",
-        "GUID:a9420e37d7990b54abdef6688edbe313",
-        "GUID:92703082f92b41ba80f0d6912de66115"
+        "GUID:c67a2972240773d4897b7a3c1bd6031c",
+        "GUID:2373f786d14518f44b0f475db77ba4de"
     ],
-    "includePlatforms": [
-        "Android",
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
@@ -20,7 +16,7 @@
         {
             "name": "Select...",
             "expression": "1.0.1",
-            "define": "HOLO_RUNTIME_NEWER_THAN_1"
+            "define": ""
         }
     ],
     "noEngineReferences": false

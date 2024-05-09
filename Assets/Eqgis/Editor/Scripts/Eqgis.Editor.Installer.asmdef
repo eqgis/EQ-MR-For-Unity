@@ -1,13 +1,8 @@
 {
-    "name": "Holo.Runtime",
+    "name": "Eqgis.Editor.Installer",
     "rootNamespace": "",
-    "references": [
-        "GUID:13ba8ce62aa80c74598530029cb2d649",
-        "GUID:a9420e37d7990b54abdef6688edbe313",
-        "GUID:92703082f92b41ba80f0d6912de66115"
-    ],
+    "references": [],
     "includePlatforms": [
-        "Android",
         "Editor"
     ],
     "excludePlatforms": [],
@@ -19,8 +14,8 @@
     "versionDefines": [
         {
             "name": "Select...",
-            "expression": "1.0.1",
-            "define": "HOLO_RUNTIME_NEWER_THAN_1"
+            "expression": "1.0.0",
+            "define": ""
         }
     ],
     "noEngineReferences": false
