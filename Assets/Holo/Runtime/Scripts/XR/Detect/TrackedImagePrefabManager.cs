@@ -1,9 +1,6 @@
 #if ENGINE_ARCORE
 using System;
 using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARSubsystems;
@@ -124,8 +121,8 @@ namespace Holo.XR.Detect
         /// This customizes the inspector component and updates the prefab list when
         /// the reference image library is changed.
         /// </summary>
-        [CustomEditor(typeof(TrackedImagePrefabManager))]
-        class PrefabImagePairManagerInspector : Editor
+        [UnityEditor.CustomEditor(typeof(TrackedImagePrefabManager))]
+        class PrefabImagePairManagerInspector : UnityEditor.Editor
         {
             List<XRReferenceImage> m_ReferenceImages = new List<XRReferenceImage>();
             bool m_IsExpanded = true;
@@ -153,13 +150,13 @@ namespace Holo.XR.Detect
                 var behaviour = serializedObject.targetObject as TrackedImagePrefabManager;
 
                 serializedObject.Update();
-                using (new EditorGUI.DisabledScope(true))
+                using (new UnityEditor.EditorGUI.DisabledScope(true))
                 {
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
+                    UnityEditor.EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
                 }
 
                 var libraryProperty = serializedObject.FindProperty(nameof(m_ImageLibrary));
-                EditorGUILayout.PropertyField(libraryProperty);
+                UnityEditor.EditorGUILayout.PropertyField(libraryProperty);
                 var library = libraryProperty.objectReferenceValue as XRReferenceImageLibrary;
 
                 //check library changes
@@ -187,25 +184,25 @@ namespace Holo.XR.Detect
                 }
 
                 //show prefab list
-                m_IsExpanded = EditorGUILayout.Foldout(m_IsExpanded, "Prefab List");
+                m_IsExpanded = UnityEditor.EditorGUILayout.Foldout(m_IsExpanded, "Prefab List");
                 if (m_IsExpanded)
                 {
-                    using (new EditorGUI.IndentLevelScope())
+                    using (new UnityEditor.EditorGUI.IndentLevelScope())
                     {
-                        EditorGUI.BeginChangeCheck();
+                        UnityEditor.EditorGUI.BeginChangeCheck();
 
                         var tempDictionary = new Dictionary<Guid, GameObject>();
                         foreach (var image in library)
                         {
-                            var prefab = (GameObject)EditorGUILayout.ObjectField(image.name, behaviour.m_PrefabsDictionary[image.guid], typeof(GameObject), false);
+                            var prefab = (GameObject)UnityEditor.EditorGUILayout.ObjectField(image.name, behaviour.m_PrefabsDictionary[image.guid], typeof(GameObject), false);
                             tempDictionary.Add(image.guid, prefab);
                         }
 
-                        if (EditorGUI.EndChangeCheck())
+                        if (UnityEditor.EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(target, "Update Prefab");
+                            UnityEditor.Undo.RecordObject(target, "Update Prefab");
                             behaviour.m_PrefabsDictionary = tempDictionary;
-                            EditorUtility.SetDirty(target);
+                            UnityEditor.EditorUtility.SetDirty(target);
                         }
                     }
                 }

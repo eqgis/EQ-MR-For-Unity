@@ -2,9 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Holo.XR.Detect
 {
@@ -84,8 +81,8 @@ namespace Holo.XR.Detect
         /// the reference image library is changed.
         /// 自定义检视器，当ARCoreImageDetector中数据更新师，这里的数据列表数对应更新
         /// </summary>
-        [CustomEditor(typeof(ImageDataMatcher))]
-        class ImageDataMatcherInspector : Editor
+        [UnityEditor.CustomEditor(typeof(ImageDataMatcher))]
+        class ImageDataMatcherInspector : UnityEditor.Editor
         {
             List<ImageData> m_ReferenceImages = new List<ImageData>();
             bool m_IsExpanded = true;
@@ -112,13 +109,13 @@ namespace Holo.XR.Detect
                 var behaviour = serializedObject.targetObject as ImageDataMatcher;
 
                 serializedObject.Update();
-                using (new EditorGUI.DisabledScope(true))
+                using (new UnityEditor.EditorGUI.DisabledScope(true))
                 {
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
+                    UnityEditor.EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
                 }
 
                 var libraryProperty = serializedObject.FindProperty(nameof(imageDetector));
-                EditorGUILayout.PropertyField(libraryProperty);
+                UnityEditor.EditorGUILayout.PropertyField(libraryProperty);
                 var detector = libraryProperty.objectReferenceValue as ARCoreImageDetector;
 
                 if (detector == null) { return; }
@@ -149,12 +146,12 @@ namespace Holo.XR.Detect
                 }
 
                 //显示数据列表，这里做数据匹配
-                m_IsExpanded = EditorGUILayout.Foldout(m_IsExpanded, "Data List");
+                m_IsExpanded = UnityEditor.EditorGUILayout.Foldout(m_IsExpanded, "Data List");
                 if (m_IsExpanded)
                 {
-                    using (new EditorGUI.IndentLevelScope())
+                    using (new UnityEditor.EditorGUI.IndentLevelScope())
                     {
-                        EditorGUI.BeginChangeCheck();
+                        UnityEditor.EditorGUI.BeginChangeCheck();
 
                         var tempDictionary = new Dictionary<string, string>();
                         foreach (var imageData in imageDatas)
@@ -164,16 +161,16 @@ namespace Holo.XR.Detect
                                 //图像名称可能重复，这里就不再添加
                                 continue;
                             }
-                            EditorGUILayout.LabelField("Image Name: " + imageData.name);
-                            var prefab = EditorGUILayout.TextField(behaviour.Match(imageData.name));
+                            UnityEditor.EditorGUILayout.LabelField("Image Name: " + imageData.name);
+                            var prefab = UnityEditor.EditorGUILayout.TextField(behaviour.Match(imageData.name));
                             tempDictionary.Add(imageData.name, prefab);
                         }
 
-                        if (EditorGUI.EndChangeCheck())
+                        if (UnityEditor.EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(target, "Update Data");
+                            UnityEditor.Undo.RecordObject(target, "Update Data");
                             behaviour.m_matchedData = tempDictionary;
-                            EditorUtility.SetDirty(target);
+                            UnityEditor.EditorUtility.SetDirty(target);
                         }
                     }
                 }
